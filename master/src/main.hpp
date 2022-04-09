@@ -28,3 +28,6 @@ void initial_variables(void);
 void interprete_command(String serial_command);
 void run_machine(void);
 void run_process_state2(void);
+
+// for debugging
+void debug_motor(int parameter);

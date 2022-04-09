@@ -3,10 +3,10 @@
 #include<io_control.hpp>
 
 
-const int dir_silo = 2;
+const int dir_silo = 33;                        // please check
 
 const int sliding_motor_pulse_pin = 28;
-const int sliding_motor_pulse_pin2 = 15;
+const int sliding_motor_pulse_pin2 = 2;         // please check with developer
 
 const int sliding_motor_dirction_pin = 26;
 

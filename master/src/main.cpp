@@ -1,6 +1,5 @@
 //======= add description =====
 
-
 #include <main.hpp>
 
 const String board_name = "TB001";
@@ -45,6 +44,12 @@ bool origin_pulse_logic = false;
 unsigned long check_origin_timer = millis();
 
 
+///
+bool run_sticker_roller = false;
+unsigned long sticker_roller_timer = 0;
+const int sticker_roller_period = 200;
+bool sticker_roller_logic = false;
+
 void setup()
 {
   Serial.begin(9600);
@@ -70,9 +75,6 @@ void setup()
 }
 //===========================================//
 
-
-
-
 void loop()
 {
   if(is_origin == false)
@@ -96,66 +98,31 @@ void loop()
   }
   if(running_state>0)
   {
-    //Relay_OFF();
     run_machine();
   }
-  // if(printer_runing == true)
-  // {
-  //   if(millis() - watch_dog_timer > watch_dog_period )
-  //    {
-  //       sliding_motor_backward();
-  //       run_sliding_motor();
-  //         if(read_over_limit() || (get_proximeter_values()==1))
-  //          {
-  //            stop_sliding_motor();
-  //            asm volatile ("jmp 0");
-  //            release_printer();
-  //            reset_printer_operation();
-  //         }
-        
-  //    }
-  // }
+
+  // ============================================
+  if(run_sticker_roller)
+  {
+    if(micros()-sticker_roller_period>=sticker_roller_period)
+    {
+      sticker_roller_logic =!sticker_roller_logic;
+      write_roller_pulse(sticker_roller_logic);
+      sticker_roller_timer = micros();
+    }
+  }
 }
-//*********************************************//
-
-// void check_sliding(void)
-// {
-//      switch(running_state)
-//   { 
-//     {
-//       case 1:
-       
-//        running_state = 2;
-//        break;
-//     }
-  
-  
-//      default:
-//      {
-
-//      }
-
-//   }
-
-// }
 
 
 void run_machine(void)
 {
   switch(running_state)/////strat_work/////
   {
-    // case 0:
-    // {
-    //   operate_printer();  //  สั่งปริ้น
-    //   running_state = 1;
-    //   break;
-    // }
     case 1: // move to specific silo
     { 
 
       Relay_ON();
       operate_printer();
-      //printer_runing = true;
       watch_dog_timer = millis();
       sliding_motor_forward();  //  เปลี่ยนทิศทางsliding
       run_sliding_motor();
@@ -190,17 +157,6 @@ void run_machine(void)
     {
       running_state = 60;
     }
-    ///////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////
-
-      // if(check_tube_drop())
-      // {
-      //   stop_silo_roller();
-      //   running_state = 5;
-      // }
-
-    ///////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////
       break;
   }
 
@@ -287,10 +243,7 @@ void run_machine(void)
     }
     case 14:
     {
-          //sliding_motor_forward(); 
           run_sliding_motor_step2();
-          //sliding_motor_forward(); 
-          //run_sliding_motor();
           last_time = millis();
           running_state = 15;
       break;
@@ -426,19 +379,12 @@ void run_machine(void)
       running_state = 26;
       break;
     }
-
-
-
-
     case 26:
     {
       Relay_OFF();
       //printer_runing = false;
       break;
     }
-
-
-
 
     case 30: //วนกลับไปทิ้งหลอดและเริ่มใหม่//
     { 
@@ -501,8 +447,6 @@ void run_machine(void)
       running_state = 26;  //เช็คหลอดใหม่//
       break;
     }
-
-
             ///////////////////////////////////////////////////////
 case 40:    ////////////////เช็คหลอดค้างในsilo//////////////////////
     {       //////////////////////////////////////////////////////
@@ -556,7 +500,6 @@ case 45:
       running_state = 40;
       break;
     }
-
 
     case 50:////////////หลอดขัด/////////////
     {
@@ -621,14 +564,6 @@ case 45:
         }
       break;
     }
-
-
-
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-
-
-
     case 60:
     {
 
@@ -674,12 +609,6 @@ case 45:
         }
       break;
     }
-/////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////        END        ///////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
     default:
     {
 
@@ -706,9 +635,7 @@ void interprete_command(String serial_command)
       asm volatile ("jmp 0");
       break;
     }
-
     ////////////////////////////////////////////////////
-
     case 'a':
     {
       on_converyer();
@@ -716,7 +643,6 @@ void interprete_command(String serial_command)
     }
 
     //////////////////////////////////////////////////
-  
     case 'c': // check sensorrs value
     {
       Serial.print(get_proximeter_values(),HEX);
@@ -749,6 +675,48 @@ void interprete_command(String serial_command)
           reset_printer_operation();
           break;
         }
+        case '3':
+        {
+          Serial.println("Open tray");
+          open_tray();
+          break;
+        }
+        case '4':
+        {
+          Serial.println("Close tray");
+          close_tray();
+          break;
+        }
+        case '5':
+        {
+          Serial.println("Turnoff actuator");
+          turnoff_actuator();
+          break;
+        }
+        case '6':
+        {
+          Serial.println("On relay");
+          Relay_ON();
+          break;
+        }
+        case '7':
+        {
+          Serial.println("off relay");
+          Relay_OFF();
+          break;
+        }
+        case '8':
+        {
+          Serial.println("Run sticker motor");
+          run_sticker_roller = true;
+          break;
+        }
+        case '9':
+        {
+          Serial.println("Stop sticker roller");
+          run_sticker_roller = false;
+          break;
+        }
         default:
         {
 
@@ -758,14 +726,11 @@ void interprete_command(String serial_command)
     }
     case 's': // start machine
     {
-      // Serial.println("Start machine");
       silo_number = int(serial_command[1]-'0');
-      if(silo_number>0 && silo_number<=6)
+      if(silo_number>0 && silo_number<=6)             // maximum number of silo is set to 4
       {
         sliding_motor_forward();
         off_converyer();
-        // Serial.print("Silo number: ");
-        // Serial.println(silo_number);
         running_state = 1;
         sliding_motor_timer = micros();
         sliding_motor_period = 800;
@@ -783,9 +748,77 @@ void interprete_command(String serial_command)
       test_servo(servo_parameter);
       break;
     }
+    case 'd':
+    {
+      int parameter = int(serial_command[1]-'0');
+      debug_motor(parameter);
+      break;
+    }
     default:
     {
 
     }
   }
+}
+
+
+void debug_motor(int parameter)
+{
+    switch(parameter)
+    {
+        case 1:
+        {
+          Serial.println("Run silo 1 motor");
+          run_silo_roller(1);
+          break;
+        }
+        case 2:
+        {
+          Serial.println("Run silo 2 motor");
+          run_silo_roller(2);
+          break;
+        }
+        case 3:
+        {
+          Serial.println("Run silo 3 motor");
+          run_silo_roller(3);
+          break;
+        }
+        case 4:
+        {
+          Serial.println("Run silo 4 motor");
+          run_silo_roller(4);
+          break;
+        }
+        case 5:
+        {
+          Serial.println("Stop silo motor");
+          stop_silo_roller();
+          break;
+        }
+        case 6:
+        {
+          Serial.println("Move sliding motor forward");
+          sliding_motor_forward();
+          run_sliding_motor();
+          break;
+        }
+        case 7:
+        {
+          Serial.println("Move sliding motor backward");
+          sliding_motor_backward();
+          run_sliding_motor();
+          break;
+        }
+        case 8:
+        {
+          Serial.println("Stop sliding motor");
+          stop_sliding_motor();
+          break;
+        }
+        default:
+        {
+            // stop all motors
+        }
+    }
 }

@@ -1,5 +1,5 @@
 const int input_pin1 = 5;
-const int input_pin2 = 9;
+const int input_pin2 = 6;
 const int output_pin = 3;
 bool output_logic = false;
 unsigned long previous_time = 0;

@@ -11,9 +11,9 @@ const int limit_switch_pin = 17;  //limitBack
 
 const int over_limit_pin = 11;    //limitFront
 
-const int SS_relay = 47;
+const int SS_relay = 41;               // plese check with developer
 
-const int run_converyer = 27;
+const int run_converyer = 37;           // please check with developer
 
 const int printer_control_bit2 = A15;
 const int printer_control_bit1 = A14;
@@ -26,7 +26,6 @@ void initial_io_control(void){
 
     pinMode(actuator_pin1,OUTPUT);
     pinMode(actuator_pin2,OUTPUT);
-
     // over_limit_pin
     pinMode(over_limit_pin,INPUT_PULLUP);
     // limit switch at printer
@@ -36,10 +35,7 @@ void initial_io_control(void){
     pinMode(printer_control_bit1,OUTPUT);
     pinMode(printer_control_bit0,OUTPUT);
     /////SS_relay//////
-//////////////////////////////////
     pinMode(SS_relay,OUTPUT);
-//////////////////////////////////
-
     reset_io_control();
     off_converyer();
 
