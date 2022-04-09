@@ -7,7 +7,7 @@ silo_file = r"C:\Test_pathfile\labelfile.txt"
 path_error_file = r"d:\Log_path\error_file.txt"
 current_silo = "0"
 
-state_counter = 0;
+state_counter = 0
 
 del_cfile_flag = 0
 del_rfile_flag = 0
@@ -17,6 +17,7 @@ byte_silo_number = b'9'
 comport = 'COM6'
 ser = serial.Serial(port=comport,baudrate=9600,timeout=1)
 print("V11")
+time.sleep(5)
 reset_period = 25
 start_time = time.time()
 
