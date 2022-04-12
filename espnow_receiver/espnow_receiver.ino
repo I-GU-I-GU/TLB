@@ -35,7 +35,7 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   int incomingRoller_status = incomingMessage.roller_status;
   int incomingBox_status = incomingMessage.box_status;
   //Serial.println(incomingRoller_status);
-  Serial.println(incomingBox_status);
+  Serial.println(incomingRoller_status);
 }
 
 void setup() {

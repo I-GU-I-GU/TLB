@@ -1,7 +1,14 @@
-#define debug_mode
+//#define debug_mode
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
+
+const int input_pin = 4; // D2 pin
+const int status_pin0 = 14; // D5 pin
+const int status_pin1 = 12; // D6
+const int status_pin2 = 13; // D7
+
+byte input_pin_status = 0xFF;
 
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 unsigned long previousMillis = 0;
@@ -35,14 +42,22 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   int incomingRoller_status = incomingMessage.roller_status;
   int incomingBox_status = incomingMessage.box_status;
   Serial.print(incomingRoller_status);
-  Serial.print("\t");
+  Serial.print(",");
   Serial.println(incomingBox_status);
+  //===== convert incomingRoller_status to binary, then send to status pins
+  digitalWrite(status_pin0,incomingRoller_status & 0x01);
+  digitalWrite(status_pin1,(incomingRoller_status >> 1) & 0x01);
+  digitalWrite(status_pin2,(incomingRoller_status >> 2) & 0x01);
 }
 
 void setup() {
   // Init Serial Monitor
   Serial.begin(9600);
   while(Serial.read()>0) { }
+  pinMode(input_pin,INPUT_PULLUP);
+  pinMode(status_pin0,OUTPUT);
+  pinMode(status_pin1,OUTPUT);
+  pinMode(status_pin2,OUTPUT);
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -63,6 +78,13 @@ void setup() {
  
 void loop() {
 
+  // read input pin
+  input_pin_status = (input_pin_status << 1) + digitalRead(input_pin);
+  if(input_pin_status == 0xF0)
+  {
+    interprete = 1;
+  }
+
   if(Serial.available())
   {
     char inByte = Serial.read();
@@ -76,6 +98,7 @@ void loop() {
     }
   }
 
+  
   if(interprete==1)
   {
     interprete = 0;
@@ -83,7 +106,8 @@ void loop() {
     Serial.print("CMD: ");
     Serial.println(pcMessage);
     #endif
-    outgoingMessage.roller_status = int(pcMessage[0]-'0');
+    //outgoingMessage.roller_status = int(pcMessage[0]-'0');
+    outgoingMessage.roller_status = 1;
     #ifdef debug_mode
     Serial.print("outgoing: ");
     Serial.println(outgoingMessage.roller_status);
@@ -98,4 +122,6 @@ void loop() {
 //    outgoingMessage.box_status = 0;
 //    esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
 //  }
+
+  
 }

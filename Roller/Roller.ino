@@ -1,6 +1,8 @@
 //#define debug_mode
 int main_state = 0;
 
+const int SS_Relay = 5;
+
 const int sensor1 = 2;
 const int sensor2 = 3;
 const int sensor3 = 4;
@@ -28,6 +30,9 @@ void setup() {
   pinMode(sensor2,INPUT_PULLUP);
   pinMode(sensor3,INPUT_PULLUP);
   pinMode(pulse_pin,OUTPUT);
+  
+  pinMode(SS_Relay,OUTPUT);
+  digitalWrite(SS_Relay,LOW);
   #ifdef debug_mode
     Serial.println("Start");
   #endif
@@ -67,6 +72,7 @@ void loop() {
     {
       if(sensor3_value == 1)
       {
+        digitalWrite(SS_Relay,LOW);
         main_state = 2;
         // start timer
         timer_15s = millis();
@@ -81,6 +87,7 @@ void loop() {
     {
       if(sensor2_value==0)
       {
+        digitalWrite(SS_Relay,HIGH);
         main_state = 5;
       }
       // check 15 seconds
