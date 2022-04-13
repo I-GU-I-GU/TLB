@@ -7,6 +7,8 @@ const int sensor1 = 2;
 const int sensor2 = 3;
 const int sensor3 = 4;
 
+const int led_status = 9;
+
 int sensor1_value = 1;
 int sensor2_value = 1;
 int sensor3_value = 1;
@@ -30,9 +32,11 @@ void setup() {
   pinMode(sensor2,INPUT_PULLUP);
   pinMode(sensor3,INPUT_PULLUP);
   pinMode(pulse_pin,OUTPUT);
+  pinMode(led_status,OUTPUT);
   
   pinMode(SS_Relay,OUTPUT);
   digitalWrite(SS_Relay,LOW);
+  digitalWrite(led_status,HIGH);
   #ifdef debug_mode
     Serial.println("Start");
   #endif
@@ -62,7 +66,7 @@ void loop() {
   {
     case 0:
     {
-      if(message[0]=='1)
+      if(message[0]=='1')
       {
         if(sensor1_value == 0)
         {
@@ -80,6 +84,7 @@ void loop() {
       if(sensor3_value == 1)
       {
         digitalWrite(SS_Relay,LOW);
+        digitalWrite(led_status,LOW);
         main_state = 2;
         // start timer
         timer_15s = millis();
@@ -95,12 +100,14 @@ void loop() {
       if(sensor2_value==0)
       {
         digitalWrite(SS_Relay,HIGH);
+        digitalWrite(led_status,HIGH);
         main_state = 5;
       }
       // check 15 seconds
       if(millis()-timer_15s >= timer_alarm)
       {
        main_state = 4; 
+       digitalWrite(led_status,HIGH);
       }
       break;
     }
