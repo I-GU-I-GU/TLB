@@ -62,9 +62,16 @@ void loop() {
   {
     case 0:
     {
-      if(message[0]=='1' && sensor1_value == 0)
+      if(message[0]=='1)
       {
-        main_state = 1;
+        if(sensor1_value == 0)
+        {
+          main_state = 1;
+        }
+        else
+        {
+          main_state = 6;
+        }
       }
       break;
     }
@@ -109,6 +116,10 @@ void loop() {
     {
       break;
     }
+    case 6:
+    {
+      break;
+    }
     default:
     {
       main_state = 0;
@@ -145,6 +156,10 @@ void loop() {
       break;
     }
     case 5:
+    {
+      break;
+    }
+    case 6:
     {
       break;
     }
