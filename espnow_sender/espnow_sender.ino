@@ -97,7 +97,6 @@ void loop() {
       pcMessage = pcMessage + String(inByte);
     }
   }
-
   
   if(interprete==1)
   {
@@ -115,13 +114,5 @@ void loop() {
     outgoingMessage.box_status = 0;
     esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
     pcMessage = "";
-  }
-//  if (millis() - previousMillis >= interval) {
-//    previousMillis = millis();
-//    outgoingMessage.roller_status = 1;
-//    outgoingMessage.box_status = 0;
-//    esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
-//  }
-
-  
+  }  
 }
