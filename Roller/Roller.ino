@@ -2,6 +2,7 @@
 int main_state = 0;
 
 const int SS_Relay = 5;
+const int DIR_pin = 6;
 
 const int sensor1 = 10;
 const int sensor2 = 2;
@@ -18,7 +19,7 @@ String message = "";
 
 bool pulse_logic = 0;
 int pulse_period = 300; // 300 milliseconds
-int pulse_timer = 0;
+unsigned long pulse_timer = 0;
 const int pulse_pin = 7;
 
 unsigned long timer_15s = 0;
@@ -33,10 +34,12 @@ void setup() {
   pinMode(sensor3,INPUT_PULLUP);
   pinMode(pulse_pin,OUTPUT);
   pinMode(led_status,OUTPUT);
+  pinMode(DIR_pin,OUTPUT);
   
   pinMode(SS_Relay,OUTPUT);
   digitalWrite(SS_Relay,HIGH);
   digitalWrite(led_status,HIGH);
+  digitalWrite(DIR_pin,HIGH);
   #ifdef debug_mode
     Serial.println("Start");
   #endif
@@ -146,9 +149,9 @@ void loop() {
     }
     case 2:
     {
-      if(millis()- pulse_timer >= pulse_period)
+      if(micros()- pulse_timer >= pulse_period)
       {
-        pulse_timer = millis();
+        pulse_timer = micros();
         pulse_logic =! pulse_logic;
         digitalWrite(pulse_pin,pulse_logic);
       }
@@ -194,6 +197,10 @@ void loop() {
     }
     if(message[0] == '0')
     {
+      #ifdef debug_mode
+        Serial.println("reset");
+        delay(10);        
+      #endif
       asm volatile (" jmp 0");
     }
     
