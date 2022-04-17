@@ -2,6 +2,8 @@ import serial
 import os
 import time
 
+# add comment
+
 comport = 'COM14'
 ser = serial.Serial(port=comport,baudrate=9600,timeout=1)
 print("Start debugging")
