@@ -641,7 +641,6 @@ void interprete_command(String serial_command)
       on_converyer();
       break;
     }
-
     //////////////////////////////////////////////////
     case 'c': // check sensorrs value
     {
@@ -752,6 +751,12 @@ void interprete_command(String serial_command)
     {
       int parameter = int(serial_command[1]-'0');
       debug_motor(parameter);
+      break;
+    }
+    case 'x':
+    {
+      int roller_state = get_roller_status();
+      Serial.println(roller_state);
       break;
     }
     default:

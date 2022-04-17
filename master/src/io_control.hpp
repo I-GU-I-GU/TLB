@@ -19,3 +19,5 @@ void reset_printer_operation(void);
 void initial_logic(void);
 void on_converyer(void);
 void off_converyer(void);
+
+int get_roller_status(void);
