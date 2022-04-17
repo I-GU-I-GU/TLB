@@ -3,9 +3,9 @@ int main_state = 0;
 
 const int SS_Relay = 5;
 
-const int sensor1 = 2;
-const int sensor2 = 3;
-const int sensor3 = 4;
+const int sensor1 = 10;
+const int sensor2 = 2;
+const int sensor3 = 11;
 
 const int led_status = 9;
 
@@ -19,7 +19,7 @@ String message = "";
 bool pulse_logic = 0;
 int pulse_period = 300; // 300 milliseconds
 int pulse_timer = 0;
-const int pulse_pin = 8;
+const int pulse_pin = 7;
 
 unsigned long timer_15s = 0;
 const int timer_alarm = 15000;
@@ -35,7 +35,7 @@ void setup() {
   pinMode(led_status,OUTPUT);
   
   pinMode(SS_Relay,OUTPUT);
-  digitalWrite(SS_Relay,LOW);
+  digitalWrite(SS_Relay,HIGH);
   digitalWrite(led_status,HIGH);
   #ifdef debug_mode
     Serial.println("Start");
