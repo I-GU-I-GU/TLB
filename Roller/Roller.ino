@@ -69,7 +69,7 @@ void loop() {
   {
     case 0:
     {
-      if(message[0]=='1')
+      if(interprete == 1 && message[0]=='1')
       {
         if(sensor1_value == 0)
         {
@@ -179,7 +179,6 @@ void loop() {
     }
   }
 
-
   // ======== send response =========
   if(interprete==1)
   {
@@ -192,16 +191,12 @@ void loop() {
     {
       interprete = 0;
       message = "";
-      Serial.print(main_state);
-      Serial.print('\n');
+      Serial.println(main_state);
     }
     if(message[0] == '0')
     {
-      #ifdef debug_mode
-        Serial.println("reset");
-        delay(10);        
-      #endif
-      asm volatile (" jmp 0");
+      main_state = 0;
+      Serial.println("0");
     }
     
   }
