@@ -759,6 +759,18 @@ void interprete_command(String serial_command)
       Serial.println(roller_state);
       break;
     }
+    case 'y':
+    {
+      // reset roller
+      on_reset_conveyor();
+      break;
+    }
+    case 'z':
+    {
+      // reset roller
+      off_reset_conveyor();
+      break;
+    }
     default:
     {
 

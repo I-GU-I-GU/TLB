@@ -5,6 +5,8 @@ const int AD0=A1;
 const int AD1=A2;
 const int AD2=A3;
 
+const int reset_pin = A7;
+
 const int actuator_pin1 = 20;
 const int actuator_pin2 = 18; 
 const int limit_switch_pin = 17;  //limitBack
@@ -31,6 +33,9 @@ void initial_io_control(void){
     pinMode(roller_status0,INPUT_PULLUP);
     pinMode(roller_status1,INPUT_PULLUP);
     pinMode(roller_status2,INPUT_PULLUP);
+
+    pinMode(reset_pin,OUTPUT);
+    pinMode(run_converyer,OUTPUT);
 
     pinMode(actuator_pin1,OUTPUT);
     pinMode(actuator_pin2,OUTPUT);
@@ -200,4 +205,14 @@ int get_roller_status(void)
     roller_status = roller_status + (digitalRead(roller_status1) << 1);
     roller_status = roller_status + digitalRead(roller_status0);
     return roller_status;
+}
+
+void on_reset_conveyor(void)
+{
+    digitalWrite(reset_pin,LOW);
+}
+
+void off_reset_conveyor(void)
+{
+    digitalWrite(reset_pin,HIGH);
 }

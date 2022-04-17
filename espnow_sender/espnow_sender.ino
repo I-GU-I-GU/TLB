@@ -3,18 +3,21 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 
+const int reset_pin = 15; // D8 pin
 const int input_pin = 4; // D2 pin
 const int status_pin0 = 14; // D5 pin
 const int status_pin1 = 12; // D6
 const int status_pin2 = 13; // D7
 
 byte input_pin_status = 0xFF;
+byte reset_pin_status = 0xFF;
 
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 unsigned long previousMillis = 0;
 const int interval = 2000;
 
 int interprete = 0;
+int reset_cmd = 0;
 String pcMessage = "";
 
 typedef struct struct_message {
@@ -55,6 +58,7 @@ void setup() {
   Serial.begin(9600);
   while(Serial.read()>0) { }
   pinMode(input_pin,INPUT_PULLUP);
+  pinMode(reset_pin,INPUT_PULLUP);
   pinMode(status_pin0,OUTPUT);
   pinMode(status_pin1,OUTPUT);
   pinMode(status_pin2,OUTPUT);
@@ -83,6 +87,11 @@ void loop() {
   if(input_pin_status == 0xF0)
   {
     interprete = 1;
+  }
+  reset_pin_status = (reset_pin_status << 1) + digitalRead(reset_pin);
+  if(reset_pin_status == 0xF0)
+  {
+    reset_cmd = 1;
   }
 
   if(Serial.available())
@@ -114,5 +123,16 @@ void loop() {
     outgoingMessage.box_status = 0;
     esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
     pcMessage = "";
-  }  
+  } 
+
+  if(reset_cmd==1)
+  {
+    reset_cmd = 0;
+    #ifdef debug_mode
+    Serial.print("reset pin activate");
+    #endif
+    outgoingMessage.roller_status = 0;
+    outgoingMessage.box_status = 0;
+    esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+  }
 }
