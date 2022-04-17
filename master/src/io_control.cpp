@@ -19,10 +19,18 @@ const int printer_control_bit2 = A15;
 const int printer_control_bit1 = A14;
 const int printer_control_bit0 = A13;
 
+const int roller_status0 = A4;
+const int roller_status1 = A5;
+const int roller_status2 = A6;
+
 void initial_io_control(void){
     pinMode(AD0,OUTPUT);
     pinMode(AD1,OUTPUT);
     pinMode(AD2,OUTPUT);
+
+    pinMode(roller_status0,INPUT_PULLUP);
+    pinMode(roller_status1,INPUT_PULLUP);
+    pinMode(roller_status2,INPUT_PULLUP);
 
     pinMode(actuator_pin1,OUTPUT);
     pinMode(actuator_pin2,OUTPUT);
@@ -182,4 +190,14 @@ void reset_io_control(void){
     digitalWrite(AD0,LOW);
 
     turnoff_actuator();
+}
+
+
+int get_roller_status(void)
+{
+    int roller_status = 0;
+    roller_status = digitalRead(roller_status2) << 2;
+    roller_status = roller_status + (digitalRead(roller_status1) << 1);
+    roller_status = roller_status + digitalRead(roller_status0);
+    return roller_status;
 }
