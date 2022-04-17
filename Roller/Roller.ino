@@ -10,7 +10,7 @@ const int sensor3 = 11;
 const int led_status = 9;
 
 int sensor1_value = 1;
-int sensor2_value = 1;
+byte sensor2_value = 0xFF;
 int sensor3_value = 1;
 
 int interprete = 0;
@@ -45,7 +45,7 @@ void setup() {
 void loop() {
   // ========= read all sensor ========
   sensor1_value = digitalRead(sensor1);
-  sensor2_value = digitalRead(sensor2);
+  sensor2_value = (sensor2_value << 1)&0xFF + digitalRead(sensor2);
   sensor3_value = digitalRead(sensor3);
 
   // ========= get cmd =============
@@ -97,7 +97,7 @@ void loop() {
     }
     case 2:
     {
-      if(sensor2_value==0)
+      if(sensor2_value==0xF0)
       {
         digitalWrite(SS_Relay,HIGH);
         digitalWrite(led_status,HIGH);

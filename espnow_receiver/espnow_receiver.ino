@@ -1,4 +1,4 @@
-//#define debug_mode
+ //#define debug_mode
 
 #include <ESP8266WiFi.h>
 #include <espnow.h>
