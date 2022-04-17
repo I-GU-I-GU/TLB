@@ -3,7 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 
-const int reset_pin = 15; // D8 pin
+const int reset_pin = 5; // D1 pin
 const int input_pin = 4; // D2 pin
 const int status_pin0 = 14; // D5 pin
 const int status_pin1 = 12; // D6
@@ -11,6 +11,7 @@ const int status_pin2 = 13; // D7
 
 byte input_pin_status = 0xFF;
 byte reset_pin_status = 0xFF;
+int cmd_from_serial = 0;
 
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 unsigned long previousMillis = 0;
@@ -100,6 +101,7 @@ void loop() {
     if(inByte=='\n')
     {
       interprete = 1;
+      cmd_from_serial = 1;
     }
     else
     {
@@ -114,8 +116,15 @@ void loop() {
     Serial.print("CMD: ");
     Serial.println(pcMessage);
     #endif
-    //outgoingMessage.roller_status = int(pcMessage[0]-'0');
-    outgoingMessage.roller_status = 1;
+    if(cmd_from_serial)
+    {
+      cmd_from_serial = 0;
+      outgoingMessage.roller_status = int(pcMessage[0]-'0');
+    }
+    else
+    {
+      outgoingMessage.roller_status = 1;
+    }
     #ifdef debug_mode
     Serial.print("outgoing: ");
     Serial.println(outgoingMessage.roller_status);
