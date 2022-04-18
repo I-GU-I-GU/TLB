@@ -18,7 +18,7 @@ int interprete = 0;
 String message = "";
 
 bool pulse_logic = 0;
-int pulse_period = 300; // 300 milliseconds
+int pulse_period = 1000; // 300 milliseconds
 unsigned long pulse_timer = 0;
 const int pulse_pin = 7;
 
@@ -48,7 +48,7 @@ void setup() {
 void loop() {
   // ========= read all sensor ========
   sensor1_value = digitalRead(sensor1);
-  sensor2_value = (sensor2_value << 1)&0xFF + digitalRead(sensor2);
+  sensor2_value = (sensor2_value << 1) + digitalRead(sensor2);
   sensor3_value = digitalRead(sensor3);
 
   // ========= get cmd =============
@@ -100,7 +100,7 @@ void loop() {
     }
     case 2:
     {
-      if(sensor2_value==0xF0)
+      if(sensor2_value==0x0F)
       {
         digitalWrite(SS_Relay,HIGH);
         digitalWrite(led_status,HIGH);
@@ -196,6 +196,7 @@ void loop() {
     if(message[0] == '0')
     {
       main_state = 0;
+      message = "";
       Serial.println("0");
     }
     
