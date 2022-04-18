@@ -15,7 +15,7 @@ const int over_limit_pin = 11;    //limitFront
 
 const int SS_relay = 41;               // plese check with developer
 
-const int run_converyer = 37;           // please check with developer
+const int run_converyer = 27;           // please check with developer
 
 const int printer_control_bit2 = A15;
 const int printer_control_bit1 = A14;
@@ -36,6 +36,9 @@ void initial_io_control(void){
 
     pinMode(reset_pin,OUTPUT);
     pinMode(run_converyer,OUTPUT);
+
+    digitalWrite(reset_pin,HIGH);
+    digitalWrite(run_converyer,HIGH);
 
     pinMode(actuator_pin1,OUTPUT);
     pinMode(actuator_pin2,OUTPUT);
@@ -198,7 +201,7 @@ void reset_io_control(void){
 }
 
 
-int get_roller_status(void)
+int get_conveyor_status(void)
 {
     int roller_status = 0;
     roller_status = digitalRead(roller_status2) << 2;
@@ -210,9 +213,11 @@ int get_roller_status(void)
 void on_reset_conveyor(void)
 {
     digitalWrite(reset_pin,LOW);
+    digitalWrite(run_converyer,HIGH);
 }
 
 void off_reset_conveyor(void)
 {
     digitalWrite(reset_pin,HIGH);
+    digitalWrite(run_converyer,HIGH);
 }

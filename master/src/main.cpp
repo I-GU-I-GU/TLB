@@ -755,7 +755,7 @@ void interprete_command(String serial_command)
     }
     case 'x':
     {
-      int roller_state = get_roller_status();
+      int roller_state = get_conveyor_status();
       Serial.println(roller_state);
       break;
     }
