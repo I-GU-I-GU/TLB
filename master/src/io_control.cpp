@@ -13,7 +13,7 @@ const int limit_switch_pin = 17;  //limitBack
 
 const int over_limit_pin = 11;    //limitFront
 
-const int SS_relay = 41;               // plese check with developer
+const int SS_relay = 47;               // plese check with developer
 
 const int run_converyer = 27;           // please check with developer
 
@@ -53,22 +53,6 @@ void initial_io_control(void){
     /////SS_relay//////
     pinMode(SS_relay,OUTPUT);
     reset_io_control();
-    off_converyer();
-
-}
-void initial_logic()
-{
-   pinMode(run_converyer,OUTPUT);
-}
-
-void on_converyer()
-{
-    digitalWrite(run_converyer,LOW);
-}
-
-void off_converyer()
-{
-    digitalWrite(run_converyer,HIGH);
 }
 
 void operate_printer(void)

@@ -14,9 +14,9 @@ del_rfile_flag = 0
 send_file = 0
 main_state = 0
 byte_silo_number = b'9'
-comport = 'COM6'
+comport = 'COM4'
 ser = serial.Serial(port=comport,baudrate=9600,timeout=1)
-print("V11")
+print("master")
 time.sleep(5)
 reset_period = 25
 start_time = time.time()
@@ -26,6 +26,8 @@ while True:
         if main_state == 0:     # idle
             if ser.isOpen():
                 main_state = 1
+                #ser.write(b'r\n')
+                #time.sleep(5)
             else:
                 ser.open()
             time.sleep(5)
@@ -69,31 +71,21 @@ while True:
                                 time.sleep(0.5)
                 if del_cfile_flag == 1:
                     if not os.path.isfile(path_error_file):
+                        # reset conveyor status
+                        ser.write(b'z\n')
+                        time.sleep(1)
+                        ser.write(b'y\n')
+                        time.sleep(3)
+                        ser.write(b'u\n')
+                        time.sleep(3)
                         # check conveyor status
                         ser.write(b'x\n')
-                        time.sleep(1)
+                        time.sleep(0.5)
                         conveyor_status = ser.readline()
                         conveyor_status = conveyor_status.strip()
-                        if conveyor_status == '1' or conveyor_status == '2':
-                            time.sleep(3)   # wait conveyor change state
-                        else:
-                            # reset conveyor status
-                            ser.write(b'y\n')
-                            time.sleep(0.1)
-                            ser.readline()
-                            ser.write(b'z\n')
-                            time.sleep(0.1)
-                            ser.readline()
-                        # check conveyor status
-                        ser.write(b'x\n')
-                        time.sleep(1)
-                        conveyor_status = ser.readline()
-                        conveyor_status = conveyor_status.strip()
+                        print(conveyor_status)
                         if conveyor_status == b'0':
                             print("Conveyor in idle state")
-                            ser.write(b'a\n')
-                            time.sleep(1)
-                            ser.readline()
                         if conveyor_status == b'1':
                             print("Conveyor in waiting state")
                         if conveyor_status == b'2':
@@ -105,12 +97,11 @@ while True:
                         if conveyor_status == b'4':
                             print("Conveyor in stuck state")
                             with open(path_error_file, 'a+') as error_file:
-                                error_file.write("Full")
+                                error_file.write("Stuck")
                         if conveyor_status == b'5':
                             print("Conveyor run complete")
                             del_cfile_flag = 0
                             main_state = 1
-                            ser.write(b'a\n')
                             if os.path.isfile(silo_file):
                                 os.remove(silo_file)
                                 print('remove c file')

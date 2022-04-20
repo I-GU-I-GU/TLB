@@ -56,8 +56,6 @@ void setup()
   while (!Serial);
   initial_variables();
   init_motors();
-  initial_logic();
-  on_converyer();
   init_sensors();
   initial_io_control();
   reset_io_control();
@@ -635,12 +633,6 @@ void interprete_command(String serial_command)
       asm volatile ("jmp 0");
       break;
     }
-    ////////////////////////////////////////////////////
-    case 'a':
-    {
-      on_converyer();
-      break;
-    }
     //////////////////////////////////////////////////
     case 'c': // check sensorrs value
     {
@@ -729,7 +721,6 @@ void interprete_command(String serial_command)
       if(silo_number>0 && silo_number<=6)             // maximum number of silo is set to 4
       {
         sliding_motor_forward();
-        off_converyer();
         running_state = 1;
         sliding_motor_timer = micros();
         sliding_motor_period = 800;

@@ -16,10 +16,6 @@ void release_printer(void);
 void operate_printer(void);
 void reset_printer_operation(void);
 
-void initial_logic(void);
-void on_converyer(void);
-void off_converyer(void);
-
 int get_conveyor_status(void);
 void on_conveyor(void);
 void reset_conveyor(void);
