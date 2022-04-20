@@ -747,6 +747,16 @@ void interprete_command(String serial_command)
       test_servo(servo_parameter);
       break;
     }
+    case 'u':
+    {
+      check_conveyor();
+      break;
+    }
+    case 'v':
+    {
+      reinit_conveyor();
+      break;
+    }
     case 'd':
     {
       int parameter = int(serial_command[1]-'0');
@@ -761,14 +771,12 @@ void interprete_command(String serial_command)
     }
     case 'y':
     {
-      // reset roller
-      on_reset_conveyor();
+      on_conveyor();
       break;
     }
     case 'z':
     {
-      // reset roller
-      off_reset_conveyor();
+      reset_conveyor();
       break;
     }
     default:

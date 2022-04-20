@@ -1,5 +1,4 @@
-//#define debug_mode
-
+#define debug_mode
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 
@@ -29,6 +28,8 @@ typedef struct struct_message {
 struct_message incomingMessage;
 struct_message outgoingMessage;
 
+int logic_state = 0;
+
 // Callback when data is sent
 void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
   #ifdef debug_mode
@@ -49,15 +50,86 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   Serial.print(",");
   Serial.println(incomingBox_status);
   //===== convert incomingRoller_status to binary, then send to status pins
-  digitalWrite(status_pin0,incomingRoller_status & 0x01);
-  digitalWrite(status_pin1,(incomingRoller_status >> 1) & 0x01);
-  digitalWrite(status_pin2,(incomingRoller_status >> 2) & 0x01);
+  switch(incomingRoller_status)
+  {
+    case 0:
+    {
+      digitalWrite(status_pin0,LOW);
+      digitalWrite(status_pin1,LOW);
+      digitalWrite(status_pin2,LOW);
+      break;
+    }
+    case 1:
+    {
+      digitalWrite(status_pin0,HIGH);
+      digitalWrite(status_pin1,LOW);
+      digitalWrite(status_pin2,LOW);
+      break;
+    }
+    case 2:
+    {
+      digitalWrite(status_pin0,LOW);
+      digitalWrite(status_pin1,HIGH);
+      digitalWrite(status_pin2,LOW);
+      break;
+    }
+    case 3:
+    {
+      digitalWrite(status_pin0,HIGH);
+      digitalWrite(status_pin1,HIGH);
+      digitalWrite(status_pin2,LOW);
+      break;
+    }
+    case 4:
+    {
+      digitalWrite(status_pin0,LOW);
+      digitalWrite(status_pin1,LOW);
+      digitalWrite(status_pin2,HIGH);
+      break;
+    }
+    case 5:
+    {
+      digitalWrite(status_pin0,HIGH);
+      digitalWrite(status_pin1,LOW);
+      digitalWrite(status_pin2,HIGH);
+      break;
+    }
+    case 6:
+    {
+      digitalWrite(status_pin0,LOW);
+      digitalWrite(status_pin1,HIGH);
+      digitalWrite(status_pin2,HIGH);
+      break;
+    }
+    case 7:
+    {
+      digitalWrite(status_pin0,HIGH);
+      digitalWrite(status_pin1,HIGH);
+      digitalWrite(status_pin2,HIGH);
+      break;
+    }
+    default:
+    {
+      digitalWrite(status_pin0,HIGH);
+      digitalWrite(status_pin1,HIGH);
+      digitalWrite(status_pin2,HIGH);
+      break;
+    }
+  }
+//  unsigned int lsb = incomingRoller_status & 0x01;
+//  unsigned int msb = (incomingRoller_status >> 1) & 0x01;
+//  unsigned int usb = (incomingRoller_status >> 2) & 0x01;
+//  
+//  digitalWrite(status_pin0,lsb);
+//  digitalWrite(status_pin1,msb);
+//  digitalWrite(status_pin2,usb);
 }
 
 void setup() {
   // Init Serial Monitor
   Serial.begin(9600);
-  while(Serial.read()>0) { }
+  //while(Serial.read()>0) { };
+  //Serial.print("OK");
   pinMode(input_pin,INPUT_PULLUP);
   pinMode(reset_pin,INPUT_PULLUP);
   pinMode(status_pin0,OUTPUT);
@@ -82,18 +154,68 @@ void setup() {
 }
  
 void loop() {
+  switch(logic_state)
+  {
+    case 0:
+    {
+      if((digitalRead(input_pin) == 0) && (digitalRead(reset_pin) == 1))
+      {
+        logic_state = 1;
+        // send 1
+        outgoingMessage.roller_status = 1;
+        outgoingMessage.box_status = 0;
+        esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+      }
+      break;
+    }
+    case 1:
+    {
+      if((digitalRead(input_pin) == 1) && (digitalRead(reset_pin) == 0))
+      {
+        logic_state = 2;
+        // send 1
+        outgoingMessage.roller_status = 1;
+        outgoingMessage.box_status = 0;
+        esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+      }
+      if((digitalRead(input_pin) == 0) && (digitalRead(reset_pin) == 0))
+      {
+        logic_state = 0;
+        // send 1
+        outgoingMessage.roller_status = 0;
+        outgoingMessage.box_status = 0;
+        esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+      }
+      break;
+    }
+    case 2:
+    {
+      if((digitalRead(input_pin) == 0) && (digitalRead(reset_pin) == 1))
+      {
+        logic_state = 1;
+        // send 1
+        outgoingMessage.roller_status = 1;
+        outgoingMessage.box_status = 0;
+        esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+      }
+      if((digitalRead(input_pin) == 0) && (digitalRead(reset_pin) == 0))
+      {
+        logic_state = 0;
+        // send 0
+        outgoingMessage.roller_status = 0;
+        outgoingMessage.box_status = 0;
+        esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+      }
+      break;
+    }
+    default:
+    {
+      logic_state = 0;
+    }
+  }
 
-  // read input pin
-  input_pin_status = (input_pin_status << 1) + digitalRead(input_pin);
-  if(input_pin_status == 0xF0)
-  {
-    interprete = 1;
-  }
-  reset_pin_status = (reset_pin_status << 1) + digitalRead(reset_pin);
-  if(reset_pin_status == 0xF0)
-  {
-    reset_cmd = 1;
-  }
+
+
 
   if(Serial.available())
   {

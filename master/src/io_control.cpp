@@ -204,20 +204,35 @@ void reset_io_control(void){
 int get_conveyor_status(void)
 {
     int roller_status = 0;
-    roller_status = digitalRead(roller_status2) << 2;
-    roller_status = roller_status + (digitalRead(roller_status1) << 1);
-    roller_status = roller_status + digitalRead(roller_status0);
+    digitalWrite(reset_pin,HIGH);
+    digitalWrite(run_converyer,HIGH);
+    //==========
+    //Serial.print(digitalRead(roller_status2));
+    //Serial.print(digitalRead(roller_status1));
+    //Serial.println(digitalRead(roller_status0));
+    roller_status = (digitalRead(roller_status2)<<2) + (digitalRead(roller_status1)<<1) + digitalRead(roller_status0);
     return roller_status;
 }
 
-void on_reset_conveyor(void)
+void reset_conveyor(void)
 {
+    digitalWrite(run_converyer,LOW);
     digitalWrite(reset_pin,LOW);
-    digitalWrite(run_converyer,HIGH);
 }
 
-void off_reset_conveyor(void)
+void on_conveyor(void)
 {
+    digitalWrite(run_converyer,LOW);
     digitalWrite(reset_pin,HIGH);
+}
+
+void check_conveyor(void)
+{
     digitalWrite(run_converyer,HIGH);
+    digitalWrite(reset_pin,LOW);
+}
+void reinit_conveyor(void)
+{
+    digitalWrite(run_converyer,HIGH);
+    digitalWrite(reset_pin,HIGH);
 }
