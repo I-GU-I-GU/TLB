@@ -1,5 +1,6 @@
 //#define debug_mode
 int main_state = 0;
+bool run_state = false;
 
 const int SS_Relay = 5;
 const int DIR_pin = 6;
@@ -24,6 +25,7 @@ const int pulse_pin = 7;
 
 unsigned long timer_15s = 0;
 const int timer_alarm = 15000;
+unsigned long pre_run_timer = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -64,14 +66,67 @@ void loop() {
       message = message + String(inByte);
     }
   }
+  // ======== send response =========
+  if(interprete==1)
+  {
+    interprete = 0;
+    #ifdef debug_mode
+      Serial.print("CMD: ");
+      Serial.println(message);
+    #endif
+    char cmd = message[0];
+    message = "";
+    switch(cmd)
+    {
+      case '0':
+      {
+        main_state = 0;
+        run_state = false;
+        message = "";
+        Serial.println("0");
+        break;
+      }
+      case '1':
+      {
+        run_state = true;
+        //Serial.println(main_state);
+        break;
+      }
+      case '2':
+      {
+        main_state = 0;
+        run_state = false;
+        if(sensor1_value == 1)
+        {
+          Serial.println("6");  // box empty
+        }
+        else
+        {
+          if(sensor3_value == 0)
+          {
+            Serial.println("3"); // box full
+          }
+          else
+          {
+            Serial.println("7");
+          }
+        }
+        break;
+      }
+      default:
+      {
+        
+      }
+    }
+  }
   // === state transition ==========
+  if(run_state)
+  {
     switch(main_state)
   {
     case 0:
     {
-      if(interprete == 1 && message[0]=='1')
-      {
-        if(sensor1_value == 0)
+      if(sensor1_value == 0)
         {
           main_state = 1;
         }
@@ -79,7 +134,6 @@ void loop() {
         {
           main_state = 6;
         }
-      }
       break;
     }
     case 1:
@@ -91,6 +145,7 @@ void loop() {
         main_state = 2;
         // start timer
         timer_15s = millis();
+        pre_run_timer = millis();
       }
       else
       {
@@ -100,11 +155,15 @@ void loop() {
     }
     case 2:
     {
-      if(sensor2_value==0x0F)
+      // detect box on conveyor
+      if(millis()-pre_run_timer>=100)
       {
-        digitalWrite(SS_Relay,HIGH);
-        digitalWrite(led_status,HIGH);
-        main_state = 5;
+        if(sensor2_value==0x07)
+        {
+          digitalWrite(SS_Relay,HIGH);
+          digitalWrite(led_status,HIGH);
+          main_state = 5;
+        }
       }
       // check 15 seconds
       if(millis()-timer_15s >= timer_alarm)
@@ -112,43 +171,7 @@ void loop() {
        main_state = 4; 
        digitalWrite(led_status,HIGH);
       }
-      break;
-    }
-    case 3:
-    {
-      break;
-    }
-    case 4:
-    {
-      break;
-    }
-    case 5:
-    {
-      break;
-    }
-    case 6:
-    {
-      break;
-    }
-    default:
-    {
-      main_state = 0;
-    }
-  }
-    
-  // ========== run main state ======
-  switch(main_state)
-  {
-    case 0:
-    {
-      break;
-    }
-    case 1:
-    {
-      break;
-    }
-    case 2:
-    {
+      // run motor
       if(micros()- pulse_timer >= pulse_period)
       {
         pulse_timer = micros();
@@ -159,18 +182,26 @@ void loop() {
     }
     case 3:
     {
+      run_state = false;
+      Serial.println("3");
       break;
     }
     case 4:
     {
+      run_state = false;
+      Serial.println("4");
       break;
     }
     case 5:
     {
+      run_state = false;
+      Serial.println("5");
       break;
     }
     case 6:
     {
+      run_state = false;
+      Serial.println("6");
       break;
     }
     default:
@@ -178,51 +209,5 @@ void loop() {
       main_state = 0;
     }
   }
-
-  // ======== send response =========
-  if(interprete==1)
-  {
-    interprete = 0;
-    #ifdef debug_mode
-      Serial.print("CMD: ");
-      Serial.println(message);
-    #endif
-    switch(message[0])
-    {
-      case '0':
-      {
-        main_state = 0;
-        message = "";
-        Serial.println("0");
-        break;
-      }
-      case '1':
-      {
-        message = "";
-        Serial.println(main_state);
-        break;
-      }
-      case '2':
-      {
-        if(sensor1_value == 1)
-        {
-          // box empty
-          Serial.println(6);
-        }
-        else
-        {
-          if(sensor3_value == 0)
-          {
-            // box full
-            Serial.println(3);
-          }
-        }
-        break;
-      }
-      default:
-      {
-        
-      }
-    }
-  }
+ }
 }

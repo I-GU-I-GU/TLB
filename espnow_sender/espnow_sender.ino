@@ -159,7 +159,7 @@ void loop() {
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
       }
-      if((digitalRead(input_pin) == 0) && (digitalRead(reset_pin) == 1))
+      if((digitalRead(input_pin) == 1) && (digitalRead(reset_pin) == 1))
       {
         logic_state = 3;
         // send 1
