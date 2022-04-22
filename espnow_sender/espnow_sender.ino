@@ -116,13 +116,6 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
       break;
     }
   }
-//  unsigned int lsb = incomingRoller_status & 0x01;
-//  unsigned int msb = (incomingRoller_status >> 1) & 0x01;
-//  unsigned int usb = (incomingRoller_status >> 2) & 0x01;
-//  
-//  digitalWrite(status_pin0,lsb);
-//  digitalWrite(status_pin1,msb);
-//  digitalWrite(status_pin2,usb);
 }
 
 void setup() {
@@ -166,6 +159,14 @@ void loop() {
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
       }
+      if((digitalRead(input_pin) == 0) && (digitalRead(reset_pin) == 1))
+      {
+        logic_state = 3;
+        // send 1
+        outgoingMessage.roller_status = 2;
+        outgoingMessage.box_status = 0;
+        esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+      }
       break;
     }
     case 1:
@@ -202,6 +203,18 @@ void loop() {
       {
         logic_state = 0;
         // send 0
+        outgoingMessage.roller_status = 0;
+        outgoingMessage.box_status = 0;
+        esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
+      }
+      break;
+    }
+    case 3:
+    {
+      if((digitalRead(input_pin) == 0) && (digitalRead(reset_pin) == 0))
+      {
+        logic_state = 0;
+        // send 1
         outgoingMessage.roller_status = 0;
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));

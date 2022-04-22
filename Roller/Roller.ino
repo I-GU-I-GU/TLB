@@ -187,18 +187,42 @@ void loop() {
       Serial.print("CMD: ");
       Serial.println(message);
     #endif
-    if(message[0] == '1')
+    switch(message[0])
     {
-      interprete = 0;
-      message = "";
-      Serial.println(main_state);
+      case '0':
+      {
+        main_state = 0;
+        message = "";
+        Serial.println("0");
+        break;
+      }
+      case '1':
+      {
+        message = "";
+        Serial.println(main_state);
+        break;
+      }
+      case '2':
+      {
+        if(sensor1_value == 1)
+        {
+          // box empty
+          Serial.println(6);
+        }
+        else
+        {
+          if(sensor3_value == 0)
+          {
+            // box full
+            Serial.println(3);
+          }
+        }
+        break;
+      }
+      default:
+      {
+        
+      }
     }
-    if(message[0] == '0')
-    {
-      main_state = 0;
-      message = "";
-      Serial.println("0");
-    }
-    
   }
 }
