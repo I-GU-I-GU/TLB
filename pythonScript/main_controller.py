@@ -5,6 +5,7 @@ import time
 
 silo_file = r"C:\Test_pathfile\labelfile.txt"
 path_error_file = r"d:\Log_path\error_file.txt"
+path_complete_file = r"d:\Log_path\complete_file.txt"
 current_silo = "0"
 
 state_counter = 0
@@ -74,12 +75,12 @@ while True:
                                 del_sfile_flag = 1
                                 time.sleep(0.5)
                 if del_cfile_flag == 1:
+                    del_cfile_flag = 0
                     if not os.path.isfile(path_error_file):
                         if os.path.isfile(silo_file):
                             os.remove(silo_file)
                             print('remove c file')
                         main_state = 1
-                        del_cfile_flag = 0
                         # reset conveyor status
                         ser.write(b'z\n')
                         time.sleep(1)
@@ -109,11 +110,8 @@ while True:
                                 error_file.write("Stuck")
                         if conveyor_status == b'5':
                             print("Conveyor run complete")
-                            del_cfile_flag = 0
-                            main_state = 1
-                            if os.path.isfile(silo_file):
-                                os.remove(silo_file)
-                                print('remove c file')
+                            with open(path_complete_file, 'a+') as complete_file:
+                                complete_file.write("Complete")
                         if conveyor_status == b'6':
                             print("Conveyor in Empty state")
                             with open(path_error_file, 'a+') as error_file:
@@ -122,18 +120,14 @@ while True:
                             pass
 
                 if del_sfile_flag == 1:
+                    del_sfile_flag = 0
                     if not os.path.isfile(path_error_file):
                         if os.path.isfile(silo_file):
                             os.remove(silo_file)
                             print('remove s file')
                         main_state = 1
-                        del_sfile_flag = 0
                         # reset conveyor status
-                        ser.write(b'z\n')
-                        time.sleep(1)
-                        ser.write(b'y\n')
-                        time.sleep(3)
-                        ser.write(b'u\n')
+                        ser.write(b'v\n')
                         time.sleep(3)
                         # check conveyor status
                         ser.write(b'x\n')
@@ -157,11 +151,8 @@ while True:
                                 error_file.write("Stuck")
                         if conveyor_status == b'5':
                             print("Conveyor run complete")
-                            del_sfile_flag = 0
-                            main_state = 1
-                            if os.path.isfile(silo_file):
-                                os.remove(silo_file)
-                                print('remove c file')
+                            with open(path_complete_file, 'a+') as complete_file:
+                                complete_file.write("Complete")
                         if conveyor_status == b'6':
                             print("Conveyor in Empty state")
                             with open(path_error_file, 'a+') as error_file:
