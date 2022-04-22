@@ -5,7 +5,7 @@ import time
 
 silo_file = r"C:\Test_pathfile\labelfile.txt"
 path_error_file = r"d:\Log_path\error_file.txt"
-path_complete_file = r"d:\Log_path\complete_file.txt"
+path_status_file = r"d:\Log_path\status_file.txt"
 current_silo = "0"
 
 state_counter = 0
@@ -22,14 +22,14 @@ print("master")
 time.sleep(5)
 reset_period = 25
 start_time = time.time()
+check_cloop = False
+check_sloop = False
 
 while True:
     try:
         if main_state == 0:     # idle
             if ser.isOpen():
                 main_state = 1
-                #ser.write(b'r\n')
-                #time.sleep(5)
             else:
                 ser.open()
             time.sleep(5)
@@ -86,38 +86,47 @@ while True:
                         time.sleep(1)
                         ser.write(b'y\n')
                         time.sleep(3)
-                        ser.write(b'u\n')
-                        time.sleep(3)
                         # check conveyor status
-                        ser.write(b'x\n')
-                        time.sleep(0.5)
-                        conveyor_status = ser.readline()
-                        conveyor_status = conveyor_status.strip()
-                        print(conveyor_status)
-                        if conveyor_status == b'0':
-                            print("Conveyor in idle state")
-                        if conveyor_status == b'1':
-                            print("Conveyor in waiting state")
-                        if conveyor_status == b'2':
-                            print("Conveyor in running state")
-                        if conveyor_status == b'3':
-                            print("Conveyor in full state")
-                            with open(path_error_file, 'a+') as error_file:
-                                error_file.write("Full")
-                        if conveyor_status == b'4':
-                            print("Conveyor in stuck state")
-                            with open(path_error_file, 'a+') as error_file:
-                                error_file.write("Stuck")
-                        if conveyor_status == b'5':
-                            print("Conveyor run complete")
-                            with open(path_complete_file, 'a+') as complete_file:
-                                complete_file.write("Complete")
-                        if conveyor_status == b'6':
-                            print("Conveyor in Empty state")
-                            with open(path_error_file, 'a+') as error_file:
-                                error_file.write("Empty")
-                        if conveyor_status == b'7':
-                            pass
+                        while check_cloop:
+                            ser.write(b'x\n')
+                            time.sleep(0.5)
+                            conveyor_status = ser.readline()
+                            conveyor_status = conveyor_status.strip()
+                            print(conveyor_status)
+                            if conveyor_status == b'0':
+                                print("Conveyor in idle state")
+                                with open(path_status_file, 'w') as status_file:
+                                    error_file.write("Wait")
+                            if conveyor_status == b'1':
+                                print("Conveyor in waiting state")
+                                with open(path_status_file, 'w') as status_file:
+                                    error_file.write("Wait")
+                            if conveyor_status == b'2':
+                                print("Conveyor in running state")
+                                with open(path_status_file, 'w') as status_file:
+                                    error_file.write("Wait")
+                            if conveyor_status == b'3':
+                                print("Conveyor in full state")
+                                with open(path_error_file, 'a+') as error_file:
+                                    error_file.write("Full")
+                            if conveyor_status == b'4':
+                                print("Conveyor in stuck state")
+                                with open(path_error_file, 'a+') as error_file:
+                                    error_file.write("Stuck")
+                            if conveyor_status == b'5':
+                                print("Conveyor run complete")
+                                with open(path_status_file, 'a+') as complete_file:
+                                    complete_file.write("Complete")
+                            if conveyor_status == b'6':
+                                print("Conveyor in Empty state")
+                                with open(path_error_file, 'a+') as error_file:
+                                    error_file.write("Empty")
+                            
+                            conveyor_status = conveyor_status - '0'
+                            if conveyor_status >=3 :
+                                check_cloop = False
+                            else:
+                                time.sleep(2)
 
                 if del_sfile_flag == 1:
                     del_sfile_flag = 0
@@ -128,37 +137,20 @@ while True:
                         main_state = 1
                         # reset conveyor status
                         ser.write(b'v\n')
-                        time.sleep(3)
+                        time.sleep(0.5)
                         # check conveyor status
                         ser.write(b'x\n')
                         time.sleep(0.5)
                         conveyor_status = ser.readline()
                         conveyor_status = conveyor_status.strip()
-                        print(conveyor_status)
-                        if conveyor_status == b'0':
-                            print("Conveyor in idle state")
-                        if conveyor_status == b'1':
-                            print("Conveyor in waiting state")
-                        if conveyor_status == b'2':
-                            print("Conveyor in running state")
                         if conveyor_status == b'3':
                             print("Conveyor in full state")
                             with open(path_error_file, 'a+') as error_file:
                                 error_file.write("Full")
-                        if conveyor_status == b'4':
-                            print("Conveyor in stuck state")
-                            with open(path_error_file, 'a+') as error_file:
-                                error_file.write("Stuck")
-                        if conveyor_status == b'5':
-                            print("Conveyor run complete")
-                            with open(path_complete_file, 'a+') as complete_file:
-                                complete_file.write("Complete")
                         if conveyor_status == b'6':
                             print("Conveyor in Empty state")
                             with open(path_error_file, 'a+') as error_file:
                                 error_file.write("Empty")
-                        if conveyor_status == b'7':
-                            pass
                         
                 if del_rfile_flag == 1:
                     del_rfile_flag = 0
