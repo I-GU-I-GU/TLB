@@ -2,6 +2,8 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 
+const int dev_class = 1;      // device class
+
 const int reset_pin = 5; // D1 pin
 const int input_pin = 4; // D2 pin
 const int status_pin0 = 14; // D5 pin
@@ -21,6 +23,7 @@ int reset_cmd = 0;
 String pcMessage = "";
 
 typedef struct struct_message {
+    int device_class;
     int roller_status;
     int box_status;
 } struct_message;
@@ -44,76 +47,80 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   memcpy(&incomingMessage, incomingData, sizeof(incomingMessage));
+  int device_class = incomingMessage.device_class;
   int incomingRoller_status = incomingMessage.roller_status;
   int incomingBox_status = incomingMessage.box_status;
-  Serial.print(incomingRoller_status);
-  Serial.print(",");
-  Serial.println(incomingBox_status);
-  //===== convert incomingRoller_status to binary, then send to status pins
-  switch(incomingRoller_status)
+  if(device_class == dev_class)
   {
-    case 0:
+    Serial.print(incomingRoller_status);
+    Serial.print(",");
+    Serial.println(incomingBox_status);
+    //===== convert incomingRoller_status to binary, then send to status pins
+    switch(incomingRoller_status)
     {
-      digitalWrite(status_pin0,LOW);
-      digitalWrite(status_pin1,LOW);
-      digitalWrite(status_pin2,LOW);
-      break;
-    }
-    case 1:
-    {
-      digitalWrite(status_pin0,HIGH);
-      digitalWrite(status_pin1,LOW);
-      digitalWrite(status_pin2,LOW);
-      break;
-    }
-    case 2:
-    {
-      digitalWrite(status_pin0,LOW);
-      digitalWrite(status_pin1,HIGH);
-      digitalWrite(status_pin2,LOW);
-      break;
-    }
-    case 3:
-    {
-      digitalWrite(status_pin0,HIGH);
-      digitalWrite(status_pin1,HIGH);
-      digitalWrite(status_pin2,LOW);
-      break;
-    }
-    case 4:
-    {
-      digitalWrite(status_pin0,LOW);
-      digitalWrite(status_pin1,LOW);
-      digitalWrite(status_pin2,HIGH);
-      break;
-    }
-    case 5:
-    {
-      digitalWrite(status_pin0,HIGH);
-      digitalWrite(status_pin1,LOW);
-      digitalWrite(status_pin2,HIGH);
-      break;
-    }
-    case 6:
-    {
-      digitalWrite(status_pin0,LOW);
-      digitalWrite(status_pin1,HIGH);
-      digitalWrite(status_pin2,HIGH);
-      break;
-    }
-    case 7:
-    {
-      digitalWrite(status_pin0,HIGH);
-      digitalWrite(status_pin1,HIGH);
-      digitalWrite(status_pin2,HIGH);
-      break;
-    }
-    default:
-    {
-      digitalWrite(status_pin0,HIGH);
-      digitalWrite(status_pin1,HIGH);
-      digitalWrite(status_pin2,HIGH);
-      break;
+      case 0:
+      {
+        digitalWrite(status_pin0,LOW);
+        digitalWrite(status_pin1,LOW);
+        digitalWrite(status_pin2,LOW);
+        break;
+      }
+      case 1:
+      {
+        digitalWrite(status_pin0,HIGH);
+        digitalWrite(status_pin1,LOW);
+        digitalWrite(status_pin2,LOW);
+        break;
+      }
+      case 2:
+      {
+        digitalWrite(status_pin0,LOW);
+        digitalWrite(status_pin1,HIGH);
+        digitalWrite(status_pin2,LOW);
+        break;
+      }
+      case 3:
+      {
+        digitalWrite(status_pin0,HIGH);
+        digitalWrite(status_pin1,HIGH);
+        digitalWrite(status_pin2,LOW);
+        break;
+      }
+      case 4:
+      {
+        digitalWrite(status_pin0,LOW);
+        digitalWrite(status_pin1,LOW);
+        digitalWrite(status_pin2,HIGH);
+        break;
+      }
+      case 5:
+      {
+        digitalWrite(status_pin0,HIGH);
+        digitalWrite(status_pin1,LOW);
+        digitalWrite(status_pin2,HIGH);
+        break;
+      }
+      case 6:
+      {
+        digitalWrite(status_pin0,LOW);
+        digitalWrite(status_pin1,HIGH);
+        digitalWrite(status_pin2,HIGH);
+        break;
+      }
+      case 7:
+      {
+        digitalWrite(status_pin0,HIGH);
+        digitalWrite(status_pin1,HIGH);
+        digitalWrite(status_pin2,HIGH);
+        break;
+      }
+      default:
+      {
+        digitalWrite(status_pin0,HIGH);
+        digitalWrite(status_pin1,HIGH);
+        digitalWrite(status_pin2,HIGH);
+        break;
+      }
     }
   }
 }
@@ -155,6 +162,7 @@ void loop() {
       {
         logic_state = 1;
         // send 1
+        outgoingMessage.device_class = dev_class;
         outgoingMessage.roller_status = 1;
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
@@ -162,7 +170,8 @@ void loop() {
       if((digitalRead(input_pin) == 1) && (digitalRead(reset_pin) == 1))
       {
         logic_state = 3;
-        // send 1
+        // send 2
+        outgoingMessage.device_class = dev_class;
         outgoingMessage.roller_status = 2;
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
@@ -175,6 +184,7 @@ void loop() {
       {
         logic_state = 2;
         // send 1
+        outgoingMessage.device_class = dev_class;
         outgoingMessage.roller_status = 1;
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
@@ -183,6 +193,7 @@ void loop() {
       {
         logic_state = 0;
         // send 1
+        outgoingMessage.device_class = dev_class;
         outgoingMessage.roller_status = 0;
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
@@ -195,6 +206,7 @@ void loop() {
       {
         logic_state = 1;
         // send 1
+        outgoingMessage.device_class = dev_class;
         outgoingMessage.roller_status = 1;
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
@@ -203,6 +215,7 @@ void loop() {
       {
         logic_state = 0;
         // send 0
+        outgoingMessage.device_class = dev_class;
         outgoingMessage.roller_status = 0;
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
@@ -214,7 +227,8 @@ void loop() {
       if((digitalRead(input_pin) == 0) && (digitalRead(reset_pin) == 0))
       {
         logic_state = 0;
-        // send 1
+        // send 0
+        outgoingMessage.device_class = dev_class;
         outgoingMessage.roller_status = 0;
         outgoingMessage.box_status = 0;
         esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
@@ -264,6 +278,7 @@ void loop() {
     Serial.print("outgoing: ");
     Serial.println(outgoingMessage.roller_status);
     #endif
+    outgoingMessage.device_class = dev_class;
     outgoingMessage.box_status = 0;
     esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
     pcMessage = "";
@@ -275,6 +290,7 @@ void loop() {
     #ifdef debug_mode
     Serial.print("reset pin activate");
     #endif
+    outgoingMessage.device_class = dev_class;
     outgoingMessage.roller_status = 0;
     outgoingMessage.box_status = 0;
     esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));

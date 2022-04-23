@@ -6,11 +6,13 @@
 String unoMessage = "";
 int interprete = 0;
 
+const int dev_class = 1;
 
 // REPLACE WITH THE MAC Address of your receiver 
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 typedef struct struct_message {
+    int device_class;
     int roller_status;
     int box_status;
 } struct_message;
@@ -32,10 +34,13 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus) {
 
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   memcpy(&incomingMessage, incomingData, sizeof(incomingMessage));
+  int device_class = incomingMessage.device_class;
   int incomingRoller_status = incomingMessage.roller_status;
   int incomingBox_status = incomingMessage.box_status;
-  //Serial.println(incomingRoller_status);
-  Serial.println(incomingRoller_status);
+  if(device_class == dev_class)
+  {
+    Serial.println(incomingRoller_status);
+  }
 }
 
 void setup() {
@@ -83,6 +88,7 @@ void loop() {
       Serial.println(unoMessage);
     #endif
     interprete = 0;
+    outgoingMessage.device_class = dev_class;
     outgoingMessage.roller_status = int(unoMessage[0]-'0');
     outgoingMessage.box_status = 0;
     esp_now_send(broadcastAddress, (uint8_t *) &outgoingMessage, sizeof(outgoingMessage));
