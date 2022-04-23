@@ -81,6 +81,7 @@ while True:
                             os.remove(silo_file)
                             print('remove c file')
                         main_state = 1
+                        check_cloop = True
                         # reset conveyor status
                         ser.write(b'z\n')
                         time.sleep(1)
@@ -122,8 +123,7 @@ while True:
                                 with open(path_error_file, 'a+') as error_file:
                                     error_file.write("Empty")
                             
-                            conveyor_status = conveyor_status - '0'
-                            if conveyor_status >=3 :
+                            if conveyor_status >= b'3' :
                                 check_cloop = False
                             else:
                                 time.sleep(2)
