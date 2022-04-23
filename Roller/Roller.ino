@@ -12,7 +12,7 @@ const int sensor3 = 11;
 const int led_status = 9;
 
 int sensor1_value = 1;
-byte sensor2_value = 0xFF;
+byte sensor2_value = 0x00;
 int sensor3_value = 1;
 
 int interprete = 0;
@@ -82,6 +82,7 @@ void loop() {
       {
         main_state = 0;
         run_state = false;
+        digitalWrite(SS_Relay,HIGH);
         message = "";
         Serial.println("0");
         break;
@@ -96,6 +97,7 @@ void loop() {
       {
         main_state = 0;
         run_state = false;
+        digitalWrite(SS_Relay,HIGH);
         if(sensor1_value == 1)
         {
           Serial.println("6");  // box empty
@@ -158,7 +160,7 @@ void loop() {
       // detect box on conveyor
       if(millis()-pre_run_timer>=100)
       {
-        if(sensor2_value==0x07)
+        if(sensor2_value==0xF0)
         {
           digitalWrite(SS_Relay,HIGH);
           digitalWrite(led_status,HIGH);
@@ -178,30 +180,44 @@ void loop() {
         pulse_logic =! pulse_logic;
         digitalWrite(pulse_pin,pulse_logic);
       }
+      // check box empty
+      //if(sensor1_value == 1)
+      //{
+      //  main_state = 6;
+      //}
+      // check box full
+      if(sensor3_value == 0)
+      {
+        main_state = 3;
+      }
       break;
     }
     case 3:
     {
       run_state = false;
       Serial.println("3");
+      digitalWrite(SS_Relay,HIGH);
       break;
     }
     case 4:
     {
       run_state = false;
       Serial.println("4");
+      digitalWrite(SS_Relay,HIGH);
       break;
     }
     case 5:
     {
       run_state = false;
       Serial.println("5");
+      digitalWrite(SS_Relay,HIGH);
       break;
     }
     case 6:
     {
       run_state = false;
       Serial.println("6");
+      digitalWrite(SS_Relay,HIGH);
       break;
     }
     default:
