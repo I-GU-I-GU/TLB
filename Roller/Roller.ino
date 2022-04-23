@@ -160,7 +160,7 @@ void loop() {
       // detect box on conveyor
       if(millis()-pre_run_timer>=100)
       {
-        if(sensor2_value==0xF0)
+        if(sensor2_value==0x80)
         {
           digitalWrite(SS_Relay,HIGH);
           digitalWrite(led_status,HIGH);
