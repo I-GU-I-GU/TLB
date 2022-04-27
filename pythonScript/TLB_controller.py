@@ -6,16 +6,16 @@ from mysql.connector import connect
 
 def save_conveyor_status(conveyor_status):
     if conveyor_status == b'3':
-        write_status("Full")
+        update_c_status("Full")
         print("Conveyor in full state")
     if conveyor_status == b'4':
-        write_status("Stuck")
+        update_c_status("Stuck")
         print("Conveyor in stuck state")
     if conveyor_status == b'5':
-        write_status("Complete")
+        update_c_status("Complete")
         print("Conveyor in complete state")
     if conveyor_status == b'6':
-        write_status("Empty")
+        update_c_status("Empty")
         print("Conveyor in empty state")
 
 def read_cmd():
@@ -27,21 +27,34 @@ def read_cmd():
     db_connector.close()
     return result_list
 
-def write_status(status_value):
+def update_c_status(status_value):
     ts = time.time()
     current_timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
 
     db_connector =  connect(host="localhost", user="root", port = 3333, passwd="sbj41310962",  db="sbj",  charset="utf8"  )
     database_cursor = db_connector.cursor()
-    sql_query = 'INSERT INTO print_status (Detail,time_stamp) VALUES (%s,%s)'
-    database_cursor.execute(sql_query,(status_value,current_timestamp))
+    sql_query = 'UPDATE print_command SET remark = %s WHERE command = "c" ORDER BY serial DESC LIMIT 1'
+    parameter_value = (status_value,)
+    database_cursor.execute(sql_query,parameter_value)
+    db_connector.commit()
+    db_connector.close()
+
+def update_silo_status(status_value):
+    ts = time.time()
+    current_timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+
+    db_connector =  connect(host="localhost", user="root", port = 3333, passwd="sbj41310962",  db="sbj",  charset="utf8"  )
+    database_cursor = db_connector.cursor()
+    sql_query = 'UPDATE print_command SET remark = %s WHERE command != "c" ORDER BY serial DESC LIMIT 1'
+    parameter_value = (status_value,)
+    database_cursor.execute(sql_query,parameter_value)
     db_connector.commit()
     db_connector.close()
 
 def update_cmd_flag():
     db_connector =  connect(host="localhost", user="root", port = 3333, passwd="sbj41310962",  db="sbj",  charset="utf8"  )
     database_cursor = db_connector.cursor()
-    sql_query = 'UPDATE print_command SET flag = 1 ORDER BY serial DESC LIMIT 1'
+    sql_query = 'UPDATE print_command SET flag = 1 WHERE flag = 0 ORDER BY serial DESC LIMIT 1'
     database_cursor.execute(sql_query)
     db_connector.commit()
     db_connector.close()
@@ -77,7 +90,7 @@ while True:
                 main_state = 2
             if cmd >= '1' and cmd <= '4':
                 message = "run silo number " + str(cmd)
-                print(message)
+                #print(message)
                 ser.write(b's')
                 ser.write(bytes(cmd,'utf-8'))
                 ser.write(b'\n')
@@ -101,6 +114,7 @@ while True:
             save_conveyor_status(conveyor_status)
             update_cmd_flag()
             main_state = 1
+            time.sleep(3)
     if main_state == 3:                         # check response from silo command
         ser.write(b'g\n')
         time.sleep(1)
@@ -119,13 +133,14 @@ while True:
                     # silo run complete
                     print("Silo run completely")
                     update_cmd_flag()
+                    update_silo_status("OK")
                     main_state = 1
                     time.sleep(2)
-        print(jam_counter)
+        #print(jam_counter)
         if jam_counter >= 6 :
             print("jaming")
             message = "jam " + str(current_silo)
-            write_status(message)
+            update_silo_status(message)
             update_cmd_flag()
             main_state = 1
             time.sleep(2)
