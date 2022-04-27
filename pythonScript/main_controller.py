@@ -1,15 +1,22 @@
 import serial
 import os
 import time
+from mysql.connector import connect
+
+def read_cmd():
+    db_connector =  connect(host="localhost", user="root", port = 3333, passwd="sbj41310962",  db="sbj",  charset="utf8"  )
+    database_cursor = db_connector.cursor()
+    sql_query = 'SELECT command FROM print_command WHERE flag = 0 ORDER BY time_stamp DESC'
+    database_cursor.execute(sql_query)
+    result_list = database_cursor.fetchall()
+    for result in result_list:
+        print(result)
+    db_connector.close()
 
 
-silo_file = r"C:\Test_pathfile\labelfile.txt"
-path_error_file = r"d:\Log_path\error_file.txt"
-path_status_file = r"d:\Log_path\status_file.txt"
+
 current_silo = "0"
-
 state_counter = 0
-
 del_cfile_flag = 0
 del_rfile_flag = 0
 del_sfile_flag = 0
