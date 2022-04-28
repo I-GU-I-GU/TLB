@@ -126,7 +126,7 @@ while True:
             if machine_state_string.isdigit():
                 machine_state = int(machine_state_string)
                 message = "machine state = " + str(machine_state)
-                print(message)
+                #print(message)
                 if machine_state == 61 :
                     jam_counter = jam_counter + 1
                 if machine_state == 0 or machine_state == 22 or machine_state == 26:
@@ -142,7 +142,7 @@ while True:
             message = "jam " + str(current_silo)
             update_silo_status(message)
             update_cmd_flag()
-            main_state = 1
+            main_state = 6
             time.sleep(2)
         
         if time.time()-silo_timer >= reset_period:
@@ -155,3 +155,11 @@ while True:
     if main_state == 5:                         # can not open serial port
         print(" Please check serial port")
         time.sleep(5)
+
+    if main_state == 6:
+        # wait 7 seconds
+        serial.write(b'r\n')
+        time.sleep(0.5)
+        serial.readline()
+        time.sleep(5)
+        main_state = 1
