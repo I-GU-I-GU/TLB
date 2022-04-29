@@ -21,9 +21,10 @@ def save_conveyor_status(conveyor_status):
 def read_cmd():
     db_connector =  connect(host="localhost", user="root", port = 3333, passwd="sbj41310962",  db="sbj",  charset="utf8"  )
     database_cursor = db_connector.cursor()
-    sql_query = 'SELECT command FROM print_command WHERE flag = "0" ORDER BY serial DESC LIMIT 1'
+    sql_query = 'SELECT command FROM print_command WHERE flag = 0 ORDER BY serial DESC LIMIT 1'
     database_cursor.execute(sql_query)
     result_list = database_cursor.fetchall()
+    db_connector.commit()
     db_connector.close()
     return result_list
 
@@ -63,7 +64,7 @@ def update_cmd_flag():
 silo_timer = 0
 jam_counter = 0
 current_silo = '0'
-reset_period = 20
+reset_period = 15
 # =========== main program ================
 main_state = 0
 machine_state = 0
@@ -71,6 +72,7 @@ comport = 'COM4'
 ser = serial.Serial(port=comport,baudrate=9600,timeout=1)
 time.sleep(2)
 while True:
+    print(main_state)
     time.sleep(1)
     if main_state == 0:                         # idle state
         if ser.isOpen():
@@ -79,15 +81,17 @@ while True:
             main_state = 5
     if main_state == 1:                         # check command from database and take action
         cmd_list = read_cmd()
+        message = "command from pc " + str(cmd_list)
+        print(message)
         if len(cmd_list) > 0 :
             cmd = cmd_list[0][0]
             if cmd == 'c':
                 print("run conveyor")
                 ser.write(b'z\n')
                 time.sleep(1)
-                ser.write(b'y\n')
-                time.sleep(1)
-                main_state = 2
+                ser.write(b'x\n')
+                ser.readline()
+                main_state = 6
             if cmd >= '1' and cmd <= '4':
                 message = "run silo number " + str(cmd)
                 #print(message)
@@ -97,6 +101,7 @@ while True:
                 silo_timer = time.time()
                 jam_counter = 0
                 current_silo = str(cmd)
+                time.sleep(5)
                 main_state = 3
         else:
             # no command just wait next loop
@@ -110,6 +115,11 @@ while True:
         if conveyor_status <= b'2':
             # conveyor still running
             print("waiting for conveyor")
+            ser.write(b'z\n')
+            time.sleep(1)
+            ser.write(b'y\n')
+            ser.readline()
+            
         if conveyor_status >=b'3' and conveyor_status <=b'6':
             save_conveyor_status(conveyor_status)
             update_cmd_flag()
@@ -129,21 +139,77 @@ while True:
                 #print(message)
                 if machine_state == 61 :
                     jam_counter = jam_counter + 1
-                if machine_state == 0 or machine_state == 22 or machine_state == 26:
+                else:
+                    silo_timer = time.time()
+                if machine_state == 0 or machine_state == 26:
                     # silo run complete
                     print("Silo run completely")
                     update_cmd_flag()
+                    print(machine_state)
+                    print("Up date silo flag")
                     update_silo_status("OK")
                     main_state = 1
-                    time.sleep(2)
+                    time.sleep(1)
         #print(jam_counter)
         if jam_counter >= 6 :
             print("jaming")
+            ser.write(b'r\n')
+            time.sleep(0.5)
+            print(ser.readline())
+            time.sleep(5)
+            # on main relay
+            ser.write(b'm6\n')
+            time.sleep(1)
+            print(ser.readline())
+            
+            
+            ser.write(b'm2\n')
+            time.sleep(1)
+            print(ser.readline())
+            
+            ser.write(b'm0\n')
+            time.sleep(2)
+            print(ser.readline())
+            # release printer
+
             message = "jam " + str(current_silo)
             update_silo_status(message)
             update_cmd_flag()
-            main_state = 6
+            # wait 10 seconds
+            check_reset_state = True
+            while check_reset_state:
+                ser.write(b'g\n')
+                time.sleep(1)
+                if ser.readline().strip() == b'0':
+                    check_reset_state = False
             time.sleep(2)
+            # reset thermal printer
+            ser.write(b'm2\n')
+            time.sleep(1)
+            print(ser.readline())
+            # operate printer
+            ser.write(b'm1\n')
+            time.sleep(7)
+            print(ser.readline())
+            # reset printer
+            ser.write(b'm2\n')
+            time.sleep(1)
+            print(ser.readline())
+            # release printer
+            ser.write(b'm0\n')
+            time.sleep(5)
+            print(ser.readline())
+            # reset printer
+
+            ser.write(b'm2\n')
+            time.sleep(1)
+            print(ser.readline())
+            
+            # off relay
+            ser.write(b'm7\n')
+            time.sleep(1)
+            print(ser.readline())
+            main_state = 1
         
         if time.time()-silo_timer >= reset_period:
             ser.write(b'r\n')
@@ -157,9 +223,18 @@ while True:
         time.sleep(5)
 
     if main_state == 6:
-        # wait 7 seconds
-        serial.write(b'r\n')
-        time.sleep(0.5)
-        serial.readline()
-        time.sleep(5)
-        main_state = 1
+        print("try to reset conveyor")
+        ser.write(b'z\n')
+        time.sleep(1)
+        ser.write(b'x\n')
+        time.sleep(1)
+        conveyor_status = ser.readline()
+        conveyor_status = conveyor_status.strip()
+        message = "conveyor status " + str(conveyor_status)
+        print(message)
+        if conveyor_status == b'0' :
+            ser.write(b'z\n')
+            time.sleep(1)
+            ser.write(b'y\n')
+            time.sleep(1)
+            main_state = 2
