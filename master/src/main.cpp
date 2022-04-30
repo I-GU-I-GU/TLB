@@ -17,8 +17,9 @@ unsigned long back_sliding = 4500; //time in miliseconds
 unsigned long time_check = 2800; //time in miliseconds
 unsigned long silo_run_dir = 200; //time in miliseconds
 
-// unsigned long
-
+bool move_more = false;
+unsigned long move_more_timer = 0;
+const int move_more_time = 20;
 
 int silo_number = 0;
 int running_state = 0;
@@ -53,23 +54,13 @@ bool sticker_roller_logic = false;
 void setup()
 {
   Serial.begin(9600);
+  Serial.flush();
   while (!Serial);
   initial_variables();
   init_motors();
   init_sensors();
   initial_io_control();
   reset_io_control();
-
-  delay(1000);
-  open_tray();
-  delay(1000);
-  on_release_servo();
-  on_chuck_servo();
-  delay(1000);
-  off_release_servo();
-  off_chuck_servo();
-  close_tray();
-  delay(1000);
 }
 //===========================================//
 
@@ -84,6 +75,29 @@ void loop()
     {
       stop_sliding_motor();
       is_origin = true;
+      delay(1000);
+      open_tray();
+      delay(1000);
+      on_release_servo();
+      on_chuck_servo();
+      delay(1000);
+      off_release_servo();
+      off_chuck_servo();
+      close_tray();
+      // ===== move more 10 ms ===========
+      move_more = true;
+      move_more_timer = millis();
+    }
+  }
+
+  if (move_more == true)
+  {
+    run_sliding_motor();
+    if (millis()-move_more_timer >= move_more_time)
+    {
+      stop_sliding_motor();
+      move_more = false;
+      delay(10);
       Relay_OFF();
     }
   }
@@ -371,15 +385,17 @@ void run_machine(void)
     }
     case 25:
     {
-      off_chuck_servo();
       off_release_servo();
+      off_chuck_servo();
       close_tray();
+      move_more = true;
+      move_more_timer = millis();
       running_state = 26;
       break;
     }
     case 26:
     {
-      Relay_OFF();
+      //Relay_OFF();
       //printer_runing = false;
       break;
     }
