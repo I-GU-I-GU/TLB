@@ -645,6 +645,7 @@ void interprete_command(String serial_command)
     case 'l': // on off led
     {
       on_lamp(serial_command[1]);
+      break;
     }
     case 'r': // reset mcu
     {

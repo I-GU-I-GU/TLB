@@ -93,6 +93,11 @@ while True:
                 ser.readline()
                 main_state = 6
             if cmd >= '1' and cmd <= '4':
+                # turn off lamp and wait 0.5 seconds
+                ser.write(b'l')
+                ser.write(b'0')
+                ser.write(b'\n')
+                time.sleep(0.5)
                 message = "run silo number " + str(cmd)
                 #print(message)
                 ser.write(b's')
