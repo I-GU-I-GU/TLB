@@ -175,6 +175,11 @@ while True:
             message = "jam " + str(current_silo)
             update_silo_status(message)
             update_cmd_flag()
+            # on jamming lamp
+            current_lamp = str(current_silo)
+            ser.write(b'l')
+            ser.write(bytes(current_lamp,'utf-8'))
+            ser.write(b'\n')
             # wait 10 seconds
             check_reset_state = True
             while check_reset_state:
