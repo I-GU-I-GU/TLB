@@ -21,3 +21,7 @@ void on_conveyor(void);
 void reset_conveyor(void);
 void check_conveyor(void);
 void reinit_conveyor(void);
+
+
+void clear_lamp(void);
+void on_lamp(char lamp_number);

@@ -25,6 +25,12 @@ const int roller_status0 = A4;
 const int roller_status1 = A5;
 const int roller_status2 = A6;
 
+// lamp
+const int lamp1 = 40;
+const int lamp2 = 42;
+const int lamp3 = 44;
+const int lamp4 = 46;
+
 void initial_io_control(void){
     pinMode(AD0,OUTPUT);
     pinMode(AD1,OUTPUT);
@@ -52,6 +58,13 @@ void initial_io_control(void){
     pinMode(printer_control_bit0,OUTPUT);
     /////SS_relay//////
     pinMode(SS_relay,OUTPUT);
+
+    // lamp control
+    pinMode(lamp1,OUTPUT);
+    pinMode(lamp2,OUTPUT);
+    pinMode(lamp3,OUTPUT);
+    pinMode(lamp4,OUTPUT);
+
     reset_io_control();
 }
 
@@ -220,3 +233,64 @@ void reinit_conveyor(void)
     digitalWrite(run_converyer,HIGH);
     digitalWrite(reset_pin,HIGH);
 }
+
+void clear_lamp(void)
+{
+    digitalWrite(lamp1,LOW);
+    digitalWrite(lamp2,LOW);
+    digitalWrite(lamp3,LOW);
+    digitalWrite(lamp4,LOW);
+}
+void on_lamp(char lamp_number)
+{
+    switch(lamp_number)
+    {
+           case '0':
+        {
+            digitalWrite(lamp1,LOW);
+            digitalWrite(lamp2,LOW);
+            digitalWrite(lamp3,LOW);
+            digitalWrite(lamp4,LOW);
+            break;
+        }
+        case '1':
+        {
+            digitalWrite(lamp1,HIGH);
+            digitalWrite(lamp2,LOW);
+            digitalWrite(lamp3,LOW);
+            digitalWrite(lamp4,LOW);
+            break;
+        }
+        case '2':
+        {
+            digitalWrite(lamp1,LOW);
+            digitalWrite(lamp2,HIGH);
+            digitalWrite(lamp3,LOW);
+            digitalWrite(lamp4,LOW);
+            break;
+        }
+        case '3':
+        {
+            digitalWrite(lamp1,LOW);
+            digitalWrite(lamp2,LOW);
+            digitalWrite(lamp3,HIGH);
+            digitalWrite(lamp4,LOW);
+            break;
+        }
+        case '4':
+        {
+            digitalWrite(lamp1,LOW);
+            digitalWrite(lamp2,LOW);
+            digitalWrite(lamp3,LOW);
+            digitalWrite(lamp4,HIGH);
+            break;
+        }
+        default:
+        {
+            clear_lamp();
+        }
+    }
+
+}
+
+

@@ -642,6 +642,10 @@ void interprete_command(String serial_command)
 {
   switch(serial_command[0])
   {
+    case 'l': // on off led
+    {
+      on_lamp(serial_command[1]);
+    }
     case 'r': // reset mcu
     {
       Serial.println("reset command");
@@ -650,7 +654,7 @@ void interprete_command(String serial_command)
       break;
     }
     //////////////////////////////////////////////////
-    case 'c': // check sensorrs value
+    case 'c': // check sensors value
     {
       Serial.print(get_proximeter_values(),HEX);
       break;
