@@ -15,9 +15,6 @@ void stop_sliding_motor(void);
 void run_sliding_motor_step2(void);
 void stop_sliding_motor_step2(void);
 
-void run_dir(void);
-void stop_dir(void);
-
 // servo functions
 void on_release_servo(void);
 void off_release_servo(void);

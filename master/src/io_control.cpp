@@ -1,35 +1,35 @@
 #include<Arduino.h>
 #include"io_control.hpp"
 
-const int AD0=A1;
+const int AD0=A0;
 const int AD1=A2;
-const int AD2=A3;
+const int AD2=A4;
 
 const int reset_pin = A7;
 
-const int actuator_pin1 = 20;
-const int actuator_pin2 = 18; 
-const int limit_switch_pin = 17;  //limitBack
+const int actuator_pin1 = 15;
+const int actuator_pin2 = 17; 
+const int limit_switch_pin = 13;  //limitBack
 
 const int over_limit_pin = 11;    //limitFront
 
-const int SS_relay = 47;               // plese check with developer
+const int SS_relay = 27;               // plese check with developer
 
-const int run_converyer = 27;           // please check with developer
+const int run_converyer = 46;           // please check with developer
 
-const int printer_control_bit2 = A15;
-const int printer_control_bit1 = A14;
-const int printer_control_bit0 = A13;
+const int printer_control_bit2 = A6;
+const int printer_control_bit1 = A8;
+const int printer_control_bit0 = A10;
 
-const int roller_status0 = A4;
-const int roller_status1 = A5;
-const int roller_status2 = A6;
+const int roller_status0 = A1;
+const int roller_status1 = A3;
+const int roller_status2 = A5;
 
 // lamp
 const int lamp1 = 40;
 const int lamp2 = 42;
 const int lamp3 = 44;
-const int lamp4 = 46;
+const int lamp4 = 48;
 
 void initial_io_control(void){
     pinMode(AD0,OUTPUT);

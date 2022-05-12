@@ -4,15 +4,14 @@
 
 const String board_name = "TB001";
 unsigned long tray_timer = 0;
-unsigned int open_tray_period = 2000;  // time in milliseconds
-unsigned int close_tray_period = 1500;  // time in milliseconds
+unsigned int open_tray_period = 800;  // time in milliseconds
+unsigned int close_tray_period = 900;  // time in milliseconds
 
-unsigned long watch_dog_timer = 0; //time in milliseconds
-unsigned long watch_dog_period = 18000; //time  in milliseconds
+
 unsigned long period = 4000;  // time in milliseconds
 unsigned long position_1_4 = 2600; // time in milliseconds
 unsigned long last_time = 0;
-unsigned long delay_AC = 2000; //time in miliseconds
+unsigned long delay_AC = 500; //time in miliseconds
 unsigned long back_sliding = 4500; //time in miliseconds
 unsigned long time_check = 2800; //time in miliseconds
 unsigned long silo_run_dir = 200; //time in miliseconds
@@ -132,11 +131,9 @@ void run_machine(void)
   {
     case 1: // move to specific silo
     { 
-
       Relay_ON();
       operate_printer();
-      watch_dog_timer = millis();
-      sliding_motor_forward();  //  เปลี่ยนทิศทางsliding
+      sliding_motor_forward();  //   reverse direction of sliding motor
       run_sliding_motor();
       running_state = 2;
       break;
@@ -147,140 +144,84 @@ void run_machine(void)
       if(sensor_value == silo_number)
       {
         stop_sliding_motor();
+        run_silo_roller(silo_number);
         running_state = 3;
       }
       break;
     }
     case 3:
-    {
-      run_silo_roller(silo_number);
-      running_state = 4;
-      break;
-    }
-    case 4:
-  {   //infrared detect tube
-    int infrared_value = check_tube_drop();
-    if(infrared_value == 1)
-       {
-         stop_silo_roller();
-         running_state = 5;
-       }
-    if(infrared_value == 0)
-    {
-      running_state = 60;
-    }
-      break;
-  }
-
-    case 5:
+    {   // infrared sensor detect tube
+      int infrared_value = check_tube_drop();
+      if(infrared_value == 1)
         {
+          stop_silo_roller();
           last_time = millis();
-          running_state = 6;
-          break;
+          running_state = 5;
         }
-    case 6:
-        {
-          if((millis()-last_time)>=delay_AC)
-          {
-            running_state = 7;
-          }
-          break;
-        }
-    case 7:
+      if(infrared_value == 0)
+      {
+        running_state = 61;
+      }
+      break;
+    }
+    case 5:   // wait tube drop on actuator
     {
+      if((millis()-last_time)>=delay_AC)
+      {
         open_tray();
         tray_timer = millis();
-        running_state = 8;
-        break;
+        running_state = 6;
+      }
+      break;
     }
-    case 8:
+    case 6:
     {
       if((millis()-tray_timer)>=open_tray_period)
       {
+        close_tray();
+        tray_timer = millis();
+        running_state = 7;
+      }
+      break;
+    }
+    case 7:
+    {
+      if((millis()-tray_timer)>=close_tray_period)
+      {
+        run_sliding_motor();
+        last_time = millis();
+        running_state = 8;
+      }
+      break;
+    }
+    case 8:
+    { 
+      int sensor_value = get_proximeter_values();
+      if(sensor_value == 4)
+      {
+        stop_sliding_motor();
+        run_sliding_motor_step2();
+        last_time = millis();
         running_state = 9;
       }
       break;
     }
     case 9:
     {
-      close_tray();
-      running_state = 10;
-      tray_timer = millis();
-      break;
-    }
-    case 10:
-    {
-      if((millis()-tray_timer)>=close_tray_period)
-      {
-        running_state = 11;
-      }
-      break;
-    }
-    case 11:
-    { 
-      int Read_tube_value = Read_tube();   /////เช็คหลอดใน silo //////
-         if(Read_tube_value == 0)
-           {
-             running_state = 12;
-           } 
-        else
-           {
-             running_state = 12; 
-           }
-
-      break;
-    }
-    case 12:
-    {
-      // move to silo number 4
-      run_sliding_motor();
-      last_time = millis();
-      running_state = 13;
-      break;
-    }
-    case 13:
-    { 
-       if(millis() - last_time > position_1_4 )
-      {
-        running_state = 30; ////30
-      }
-      int sensor_value = get_proximeter_values();
-      if(sensor_value == 4)
-      {
-        stop_sliding_motor();
-        //run_sliding_motor2();
-        running_state = 14;
-      }
-      break;
-    }
-    case 14:
-    {
-          run_sliding_motor_step2();
-          last_time = millis();
-          running_state = 15;
-      break;
-    }
-    case 15:
-    {
-      if(millis() - last_time > period )
-      {
-        running_state = 30;////30
-      }
       if(read_limit_switch()==true)
-           {
-            running_state = 16;
-            stop_sliding_motor_step2();
-            sliding_motor_backward(); // ready to return home
-
+        {
+          running_state = 10;
+          stop_sliding_motor_step2();
+          sliding_motor_backward(); // ready to return home
         //****** set roller motor parameter *******//
-            roller_motor_timer = micros();
-            roller_motor_period = 200;
-            roller_pulse_counter = 0;
-            roller_pulse_target = 4000;
+          roller_motor_timer = micros();
+          roller_motor_period = 200;
+          roller_pulse_counter = 0;
+          roller_pulse_target = 2000;       // 0.8 seconds
          }
       break;
     }
-    case 16:
+    case 10:
     {
       // run roller first step
       if((micros()-roller_motor_timer)>=roller_motor_period)
@@ -288,27 +229,21 @@ void run_machine(void)
         roller_motor_logic =! roller_motor_logic;
         write_roller_pulse(roller_motor_logic);
         roller_motor_timer = micros();
-
         // check pulse counter
         roller_pulse_counter = roller_pulse_counter +1;
         if(roller_pulse_counter>=roller_pulse_target)
         {
-            running_state = 17;
+          // set roller second speed
+          roller_motor_timer = micros();
+          roller_motor_period = 80;
+          roller_pulse_counter = 0;
+          roller_pulse_target = 6250;     // 1 second
+          running_state = 11;
         }
       }
       break;
     }
-    case 17:
-    {
-      // set roller second speed
-      roller_motor_timer = micros();
-      roller_motor_period = 80;
-      roller_pulse_counter = 0;
-      roller_pulse_target = 12500;
-      running_state = 18;
-      break;
-    }
-    case 18:
+    case 11:
     {
       // run roller second step
       if((micros()-roller_motor_timer)>=roller_motor_period)
@@ -316,74 +251,58 @@ void run_machine(void)
         roller_motor_logic =! roller_motor_logic;
         write_roller_pulse(roller_motor_logic);
         roller_motor_timer = micros();
-
         // check pulse counter
         roller_pulse_counter = roller_pulse_counter +1;
         if(roller_pulse_counter>=roller_pulse_target)
         {
-            running_state = 19;
+          running_state = 12;
+          open_tray();
+          run_sliding_motor();
+          last_time = millis();
         }
       }
       break;
     }
-    case 19:
+    case 12:
     {
-      //release_printer();
-      run_sliding_motor();
-      last_time = millis();
-      running_state = 20;
-      break;
-    }
-    case 20:
-    {
-       if(millis() - last_time > back_sliding )
-       {
-         running_state = 50;///////////////////////////////////////////////////////////////50
-       }
-      // set parameter go to origin
-        int sensor_value = get_proximeter_values();
-        if(sensor_value == 1)
+      int sensor_value = get_proximeter_values();
+      if(sensor_value == 3)
         {
-          stop_sliding_motor();
-          running_state = 21;
+          on_release_servo();
+          on_chuck_servo();
+          release_printer();
+          running_state = 13;
         }
       break;
     }
-    case 21:
+    case 13:
     {
-      release_printer();
-      //reset_printer_operation();
-      open_tray();
-      tray_timer = millis();
-      on_release_servo();
-      running_state = 22;
+      int sensor_value = get_proximeter_values();
+      if(sensor_value == 1)
+      {
+        stop_sliding_motor();
+        running_state = 14;
+      }
       break;
     }
-    case 22:
+    case 14:
     {
       if((millis()-tray_timer)>=open_tray_period)
       {
-        running_state = 23;
+        reset_printer_operation();
+        running_state = 15;
       }
       break;
     }
-    case 23:
-    {
-      reset_printer_operation();
-      on_chuck_servo();
-      chuck_timer = millis();
-      running_state = 24;
-      break;
-    }
-    case 24:
+    case 15:
     {
       if((millis()-chuck_timer)>= chuck_period)
       {
-        running_state = 25;
+        running_state = 16;
       }
       break;
     }
-    case 25:
+    case 16:
     {
       off_release_servo();
       off_chuck_servo();
@@ -393,233 +312,18 @@ void run_machine(void)
       running_state = 26;
       break;
     }
-    case 26:
+    case 26:        // process end here
     {
-      //Relay_OFF();
-      //printer_runing = false;
       break;
     }
 
-    case 30: //วนกลับไปทิ้งหลอดและเริ่มใหม่//
-    { 
-      stop_sliding_motor_step2();
-      sliding_motor_backward(); // ready to return home
-      release_printer();
-      run_sliding_motor(); // return to home
-
-      running_state = 31;
-      break;
-    }
-    case 31:
-    {
-      // set parameter go to origin
-      int sensor_value = get_proximeter_values();
-      if(sensor_value == 1)
-      {
-        stop_sliding_motor();
-        running_state = 32;
-      }
-      break;
-    }
-     case 32:
-    {
-      reset_printer_operation();
-      open_tray();
-      tray_timer = millis();
-      on_release_servo();
-      running_state = 33;
-      break;
-    }
-    case 33:
-    {
-      if((millis()-tray_timer)>=open_tray_period)
-      {
-        running_state = 34;
-      }
-      break;
-    }
-    case 34:
-    {
-      on_chuck_servo();
-      chuck_timer = millis();
-      running_state = 35;
-      break;
-    }
-    case 35:
-    {
-      if((millis()-chuck_timer)>= chuck_period)
-      {
-        running_state = 36;
-      }
-      break;
-    }
-    case 36:
-    {
-      off_chuck_servo();
-      off_release_servo();
-      close_tray();
-      running_state = 26;  //เช็คหลอดใหม่//
-      break;
-    }
-            ///////////////////////////////////////////////////////
-case 40:    ////////////////เช็คหลอดค้างในsilo//////////////////////
-    {       //////////////////////////////////////////////////////
-      int Read_tube_value = Read_tube();   /////เช็คหลอดใน silo //////
-        if(Read_tube_value == 0)
-        {
-          running_state = 26;
-        }  
-        else
-        {
-          running_state = 26; 
-        } 
-    break;
-       }
-case 41:
-    {
-      open_tray();
-      tray_timer = millis();
-      on_release_servo();
-      running_state = 42;
-      break;
-    }
-case 42:
-    {
-      if((millis()-tray_timer)>=open_tray_period)
-      {
-        running_state = 43;
-      }
-      break;
-    }
-case 43:
-    {
-      on_chuck_servo();
-      chuck_timer = millis();
-      running_state = 44;
-      break;
-    }
-case 44:
-    {
-      if((millis()-chuck_timer)>= chuck_period)
-      {
-        running_state = 45;
-      }
-      break;
-    }
-case 45:
-    {
-      off_chuck_servo();
-      off_release_servo();
-      close_tray();
-      running_state = 40;
-      break;
-    }
-
-    case 50:////////////หลอดขัด/////////////
-    {
-      stop_sliding_motor();
-      running_state = 51;
-      break;
-    }    
-    case 51:
-    {
-      reset_printer_operation();
-      open_tray();
-      tray_timer = millis();
-      on_release_servo();
-      running_state = 52;
-      break;
-    }
-    case 52:
-    {
-      if((millis()-tray_timer)>=open_tray_period)
-      {
-        running_state = 53;
-      }
-      break;
-    }
-    case 53:
-    {
-      on_chuck_servo();
-      chuck_timer = millis();
-      running_state = 54;
-      break;
-    }
-    case 54:
-    {
-      if((millis()-chuck_timer)>= chuck_period)
-      {
-        running_state = 55;
-      }
-      break;
-    }
-    case 55:
-    {
-      off_chuck_servo();
-      off_release_servo();
-      close_tray();
-      running_state = 56;  
-      break;
-    }
-    case 56:
-    {
-      run_sliding_motor();
-      running_state = 57;
-      break;
-    }
-    case 57:
-    {
-      // set parameter go to origin
-        int sensor_value = get_proximeter_values();
-        if(sensor_value == 1)
-        {
-          stop_sliding_motor();
-          running_state = 26;
-        }
-      break;
-    }
-    case 60:
-    {
-
-     if(check_tube_drop())
-        {
-         stop_silo_roller();
-         running_state = 5;
-        }
-      last_time = millis();
-      running_state = 61;
-      break;
-    }
-
+    // wait tube ============
     case 61:
     { 
-      if ((millis()-last_time)>=time_check)
-      {
-        run_dir();
-        last_time = millis();
-        running_state = 62;
-      }
-      
      if(check_tube_drop())
         {
          stop_silo_roller();
-         running_state = 5;
-        }
-      break;
-    }
-
-    case 62:
-    { 
-      if((millis()-last_time)>=silo_run_dir)
-      {
-        stop_dir();
-        running_state = 4;
-      }
-      
-     if(check_tube_drop())
-        {
-         stop_silo_roller();
-         running_state = 5;
+         running_state = 3;
         }
       break;
     }

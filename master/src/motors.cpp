@@ -3,17 +3,17 @@
 #include<io_control.hpp>
 
 
-const int dir_silo = 46;                        // please check
+
 
 const int sliding_motor_pulse_pin = 28;
-const int sliding_motor_pulse_pin2 = 2;         // please check with developer
+const int sliding_motor_pulse_pin2 = 26;         // please check with developer
 
-const int sliding_motor_dirction_pin = 26;
+const int sliding_motor_dirction_pin = 24;
 
-const int roller_motor_pulse_pin = 31;
+const int roller_motor_pulse_pin = 34;
 
-const int release_servo_pin = 14;
-const int chuck_servo_pin = 16;
+const int release_servo_pin = 38;
+const int chuck_servo_pin = 36;
 
 Servo release_servo;
 Servo chuck_servo;
@@ -42,16 +42,6 @@ void stop_sliding_motor_step2(void)
     digitalWrite(sliding_motor_pulse_pin2,LOW);
 }
 
-void run_dir(void)
-{
-    digitalWrite(dir_silo,HIGH);
-}
-
-void stop_dir(void)
-{
-    digitalWrite(dir_silo,LOW);
-}
-
 void write_sliding_pulse(bool sliding_motor_logic)
 {
     digitalWrite(sliding_motor_pulse_pin,sliding_motor_logic);
@@ -66,8 +56,6 @@ void init_motors(void){
 
     pinMode(chuck_servo_pin,OUTPUT);
     pinMode(release_servo_pin,OUTPUT);
-
-    pinMode(dir_silo,OUTPUT);
 
 
     // initial servo here
@@ -92,11 +80,11 @@ void sliding_motor_backward(void){
 
 void on_release_servo(void)
 {
-    release_servo.write(50);
+    release_servo.write(60);
 }
 void off_release_servo(void)
 {
-    release_servo.write(5);
+    release_servo.write(28);
 }
 void on_chuck_servo(void)
 {
