@@ -18,11 +18,14 @@ void stop_sliding_motor_step2(void);
 // servo functions
 void on_release_servo(void);
 void off_release_servo(void);
-void on_chuck_servo(void);
-void off_chuck_servo(void);
+//void servo_shift(void);
+// void on_chuck_servo(void);
+// void off_chuck_servo(void);
 
 // roller motor
 void write_roller_pulse(bool pulse_logic);
+void roller_forward(void);
+void roller_backward(void);
 
 void test_servo(int parameter);
 

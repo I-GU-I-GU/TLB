@@ -2,9 +2,10 @@ const int input_pin1 = 5;
 const int input_pin2 = 6;
 const int output_pin = 3;
 bool output_logic = false;
+
 unsigned long previous_time = 0;
-unsigned long pulse_period1 = 110;
-unsigned long pulse_period2 = 200;
+unsigned long pulse_period1 = 10;
+unsigned long pulse_period2 = 40;
 
 void setup() {
   // put your setup code here, to run once:

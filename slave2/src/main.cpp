@@ -29,7 +29,7 @@ unsigned int slab_motor_counter = 0;
 bool slab_motor_logic = false;
 
 const int loadcell_target = 10;
-const int slap_up_down = 1400;
+const int slap_up_down = 1500;
 const int slab_down = 1500;
 
 unsigned long delay_slab = 500;
@@ -39,15 +39,15 @@ unsigned long delay_slab_time = 0;
 unsigned long delay_off = 6000;
 unsigned long delay_ST = 0;
 
-const int delay_startup = 1700;
+const int delay_startup = 1300;
 unsigned long startup_timer = 0;
 
 const int slab_down1 = 800;
 const int pull_back1 = 200;
-const int slap_period = 200;
-const int slab_up = 50;
+const int slap_period = 100;
+const int slab_up =40;
 const int slab_down_period = 140;
-const int pull_period = 120;
+const int pull_period = 100;
 const int pull_period_end = 100;
 //************ release motor *************
 int release_state = 0;
@@ -107,8 +107,8 @@ void release_pulling_motor(void)
       
       set_pull_motor_backward();
       pull_motor_timer = micros();
-      pull_motor_period = 50;
-      pull_motor_target = 1600;
+      pull_motor_period = 30;
+      pull_motor_target = 2500;
       pull_motor_counter = 0;
       release_state = 1;
       break;
@@ -242,7 +242,7 @@ void run_printer(void)
         case 8:
         {
           delay_slab_time = millis();
-          delay_slab = 250;   // previous = 300
+          delay_slab = 300;   // previous = 300
           run_printer_state = 9;
           break;
         }
@@ -260,7 +260,7 @@ void run_printer(void)
           pull_motor_timer = micros();
           pull_motor_period = pull_period;
           pull_motor_counter =0;
-          pull_motor_target = 700;      // prevoius => 200
+          pull_motor_target = 500;      // prevoius => 200
           run_printer_state = 11;
           break;
         }
@@ -389,7 +389,7 @@ void run_printer(void)
           pull_motor_timer=micros();
           pull_motor_period = pull_period;
           pull_motor_counter =0;
-          pull_motor_target = 800;
+          pull_motor_target = 1300;
           run_printer_state = 23;
 
           break;
@@ -594,18 +594,19 @@ void run_printer(void)
             int limit_pressed = get_limit_switch();         
             if(limit_pressed>0)
             {
-              run_printer_state = 42;
+              run_printer_state = 58;
             }
           }
           break;
         }
+        /////////////////////////////////////////////////////// SKIP TO STATE 58 /////////////////////////////////////////////////////////
         case 42:
         {
           set_pull_motor_backward();
           pull_motor_timer=micros();
           pull_motor_period = pull_period;
           pull_motor_counter =0;
-          pull_motor_target = 500;
+          pull_motor_target = 1300;
           run_printer_state = 43;
 
           break;
@@ -693,7 +694,7 @@ void run_printer(void)
           pull_motor_timer = micros();
           pull_motor_period = pull_period;
           pull_motor_counter =0;
-          pull_motor_target = 150;
+          pull_motor_target = 300;
           run_printer_state = 51;
           break;
         }
@@ -804,7 +805,7 @@ void run_printer(void)
         {
           set_slab_motor_forward(); 
           slab_motor_period = slab_up;
-          slab_motor_target = 300;  
+          slab_motor_target = 400;  
           slab_motor_counter = 0;
           run_printer_state = 61;
           break;

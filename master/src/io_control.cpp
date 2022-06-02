@@ -1,29 +1,42 @@
 #include<Arduino.h>
 #include"io_control.hpp"
 
-const int AD0=A0;
+const int AD0=A1;
 const int AD1=A2;
-const int AD2=A4;
+const int AD2=A3;
 
 const int reset_pin = A7;
 
-const int actuator_pin1 = 15;
-const int actuator_pin2 = 17; 
-const int limit_switch_pin = 13;  //limitBack
+const int actuator_pin1 = 20;
+const int actuator_pin2 = 18; 
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+const int sensor_flip = 16;
+
+const int flip_motor_pin1 = 6;
+const int flip_motor_pin2 = 8;
+
+const int slide_flip_pin1 = 10;
+const int slide_flip_pin2 = 12;
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+const int limit_switch_pin = 17;  //limitBack
 
 const int over_limit_pin = 11;    //limitFront
 
-const int SS_relay = 27;               // plese check with developer
+const int SS_relay = 47;               // plese check with developer //// pin 47
 
 const int run_converyer = 46;           // please check with developer
 
-const int printer_control_bit2 = A6;
-const int printer_control_bit1 = A8;
-const int printer_control_bit0 = A10;
+const int printer_control_bit2 = A15;
+const int printer_control_bit1 = A14;
+const int printer_control_bit0 = A13;
 
-const int roller_status0 = A1;
-const int roller_status1 = A3;
-const int roller_status2 = A5;
+// const int roller_status0 = A1;
+// const int roller_status1 = A3;
+// const int roller_status2 = A5;
 
 // lamp
 const int lamp1 = 40;
@@ -36,9 +49,9 @@ void initial_io_control(void){
     pinMode(AD1,OUTPUT);
     pinMode(AD2,OUTPUT);
 
-    pinMode(roller_status0,INPUT_PULLUP);
-    pinMode(roller_status1,INPUT_PULLUP);
-    pinMode(roller_status2,INPUT_PULLUP);
+    // pinMode(roller_status0,INPUT_PULLUP);
+    // pinMode(roller_status1,INPUT_PULLUP);
+    // pinMode(roller_status2,INPUT_PULLUP);
 
     pinMode(reset_pin,OUTPUT);
     pinMode(run_converyer,OUTPUT);
@@ -65,8 +78,61 @@ void initial_io_control(void){
     pinMode(lamp3,OUTPUT);
     pinMode(lamp4,OUTPUT);
 
+    /////flip_control/////
+
+    pinMode(flip_motor_pin1,OUTPUT);
+    pinMode(flip_motor_pin2,OUTPUT);
+    pinMode(slide_flip_pin1,OUTPUT);
+    pinMode(slide_flip_pin2,OUTPUT);
+    pinMode(sensor_flip,INPUT);
+
+    //////////////////////////////////
+
     reset_io_control();
 }
+ //////////////////////////////////////////////// flip tube ///////////////////////////////////////
+void on_motor_flip_forward(void)
+{
+    digitalWrite(flip_motor_pin1,HIGH);
+    digitalWrite(flip_motor_pin2,LOW);
+}
+
+void on_motor_flip_backward(void)
+{
+    digitalWrite(flip_motor_pin1,LOW);
+    digitalWrite(flip_motor_pin2,HIGH); 
+}
+
+void off_motor_flip(void)
+{
+    digitalWrite(flip_motor_pin1,LOW);
+    digitalWrite(flip_motor_pin2,LOW);
+}
+
+void linere_forward(void)
+{
+    digitalWrite(slide_flip_pin1,LOW);
+    digitalWrite(slide_flip_pin2,HIGH);
+}
+
+void linere_backward(void)
+{
+    digitalWrite(slide_flip_pin1,HIGH);
+    digitalWrite(slide_flip_pin2,LOW);
+}
+
+void off_linere(void)
+{
+    digitalWrite(slide_flip_pin1,LOW);
+    digitalWrite(slide_flip_pin2,LOW);
+}
+
+bool check_flip_tube(void)
+{
+    return digitalRead(sensor_flip);  
+}
+
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void operate_printer(void)
 {
@@ -198,18 +264,18 @@ void reset_io_control(void){
 }
 
 
-int get_conveyor_status(void)
-{
-    int roller_status = 0;
-    digitalWrite(reset_pin,HIGH);
-    digitalWrite(run_converyer,HIGH);
-    //==========
-    //Serial.print(digitalRead(roller_status2));
-    //Serial.print(digitalRead(roller_status1));
-    //Serial.println(digitalRead(roller_status0));
-    roller_status = (digitalRead(roller_status2)<<2) + (digitalRead(roller_status1)<<1) + digitalRead(roller_status0);
-    return roller_status;
-}
+// int get_conveyor_status(void)
+// {
+//     int roller_status = 0;
+//     digitalWrite(reset_pin,HIGH);
+//     digitalWrite(run_converyer,HIGH);
+//     //==========
+//     //Serial.print(digitalRead(roller_status2));
+//     //Serial.print(digitalRead(roller_status1));
+//     //Serial.println(digitalRead(roller_status0));
+//     roller_status = (digitalRead(roller_status2)<<2) + (digitalRead(roller_status1)<<1) + digitalRead(roller_status0);
+//     return roller_status;
+// }
 
 void reset_conveyor(void)
 {

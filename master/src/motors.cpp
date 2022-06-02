@@ -4,23 +4,31 @@
 
 
 
-
 const int sliding_motor_pulse_pin = 28;
-const int sliding_motor_pulse_pin2 = 26;         // please check with developer
+const int sliding_motor_pulse_pin2 = 2;         // please check with developer
 
-const int sliding_motor_dirction_pin = 24;
+const int sliding_motor_dirction_pin = 26;
 
-const int roller_motor_pulse_pin = 34;
+const int roller_motor_pulse_pin = 31;
+const int roller_direction = 52;
 
-const int release_servo_pin = 38;
-const int chuck_servo_pin = 36;
+const int release_servo_pin = 14;
 
 Servo release_servo;
-Servo chuck_servo;
 
 void write_roller_pulse(bool pulse_logic){
     digitalWrite(roller_motor_pulse_pin,pulse_logic);
 }
+
+void roller_forward(void)
+{
+    digitalWrite(roller_direction,LOW);
+}
+
+void roller_backward(void)
+{
+    digitalWrite(roller_direction,HIGH);
+}    
 
 void run_sliding_motor(void)
 {
@@ -53,17 +61,16 @@ void init_motors(void){
     pinMode(sliding_motor_pulse_pin2,OUTPUT);
     
     pinMode(roller_motor_pulse_pin,OUTPUT);
+    pinMode(roller_direction,OUTPUT);
 
-    pinMode(chuck_servo_pin,OUTPUT);
     pinMode(release_servo_pin,OUTPUT);
 
 
     // initial servo here
     release_servo.attach(release_servo_pin);
-    chuck_servo.attach(chuck_servo_pin);
     
     on_release_servo();
-    off_chuck_servo();
+    //off_chuck_servo();
 }
 //*****************************************
 void reset_motor_variables(void){
@@ -80,20 +87,26 @@ void sliding_motor_backward(void){
 
 void on_release_servo(void)
 {
-    release_servo.write(60);
+    release_servo.write(120);
 }
 void off_release_servo(void)
 {
-    release_servo.write(28);
+    release_servo.write(27);
 }
-void on_chuck_servo(void)
-{
-    chuck_servo.write(35);
-}
-void off_chuck_servo(void)
-{
-    chuck_servo.write(180);
-}
+// void servo_shift(void)
+// {
+//     release_servo.write(35);
+// }
+
+
+// void on_chuck_servo(void)
+// {
+//     chuck_servo.write(35);
+// }
+// void off_chuck_servo(void)
+// {
+//     chuck_servo.write(180);
+// }
 
 void test_servo(int parameter)
 {
@@ -114,21 +127,21 @@ void test_servo(int parameter)
             release_servo.write(50);
             break;
         }
-        case 3:
-        {
-            chuck_servo.write(45);
-            break;
-        }
-        case 4:
-        {
-            chuck_servo.write(90);
-            break;
-        }
-        case 5:
-        {
-            chuck_servo.write(180);
-            break;
-        }
+        // case 3:
+        // {
+        //     chuck_servo.write(45);
+        //     break;
+        // }
+        // case 4:
+        // {
+        //     chuck_servo.write(90);
+        //     break;
+        // }
+        // case 5:
+        // {
+        //     chuck_servo.write(180);
+        //     break;
+        // }
         default:
             break;
     }
