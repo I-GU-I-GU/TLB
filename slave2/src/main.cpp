@@ -107,7 +107,7 @@ void release_pulling_motor(void)
       
       set_pull_motor_backward();
       pull_motor_timer = micros();
-      pull_motor_period = 30;
+      pull_motor_period = 30;     // first version pulse_period = 30
       pull_motor_target = 2500;
       pull_motor_counter = 0;
       release_state = 1;

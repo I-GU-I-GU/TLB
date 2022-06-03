@@ -6,10 +6,10 @@ const int motor3_pulse = 10;
 const int motor4_pulse = 12;
 
 const int pull_motor_pulse = 3;
-const int pull_motor_direction = 2;
+const int pull_motor_direction = 4;
 
 const int slab_motor_pulse = 5;
-const int slab_motor_direction = 4;
+const int slab_motor_direction = 6;
 
 void initial_motors(void){
     pinMode(motor1_pulse,OUTPUT);
@@ -26,12 +26,14 @@ void initial_motors(void){
 
 void set_pull_motor_forward(void)
 {
-    digitalWrite(pull_motor_direction,LOW);
+    //digitalWrite(pull_motor_direction,LOW);         // 1st version
+    digitalWrite(pull_motor_direction,HIGH);             // 2nd version
 }
 
 void set_pull_motor_backward(void)
 {
-    digitalWrite(pull_motor_direction,HIGH);
+    //digitalWrite(pull_motor_direction,HIGH);        // 1st version
+    digitalWrite(pull_motor_direction,LOW);
 }
 
 void run_pull_motor(bool output_logic)

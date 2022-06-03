@@ -1,13 +1,13 @@
 #include"io_control.hpp"
 
 
-const int printer_control_bit2 = A4;
-const int printer_control_bit1 = A3;
-const int printer_control_bit0 = A2;
+const int printer_control_bit2 = A6;
+const int printer_control_bit1 = A5;
+const int printer_control_bit0 = A4;
 
-const int loadcell_pin = A1;
+const int loadcell_pin = A3;
 const int SS_Relay = 10;
-const int limit_switch_pin = 6;
+const int limit_switch_pin = 14;
 
 
 void Relay(void)
@@ -54,7 +54,7 @@ int get_weight(void)
 byte get_printer_control_signal(void)
 {
     byte control_signal_value = 0x00;
-    control_signal_value = (control_signal_value <<1) + digitalRead(printer_control_bit2);
+    control_signal_value = digitalRead(printer_control_bit2);
     control_signal_value = (control_signal_value <<1) + digitalRead(printer_control_bit1);
     control_signal_value = (control_signal_value <<1) + digitalRead(printer_control_bit0);
 
@@ -64,6 +64,11 @@ byte get_printer_control_signal(void)
         case 0x02:
         {
             return_value = 1;
+            break;
+        }
+        case 0x01:
+        {
+            return_value = 2;
             break;
         }
         case 0x05:

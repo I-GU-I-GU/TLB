@@ -5,14 +5,14 @@
 
 
 const int sliding_motor_pulse_pin = 28;
-const int sliding_motor_pulse_pin2 = 2;         // please check with developer
+const int sliding_motor_pulse_pin2 = 26;         // please check with developer
 
-const int sliding_motor_dirction_pin = 26;
+const int sliding_motor_dirction_pin = 24;
 
-const int roller_motor_pulse_pin = 31;
+const int roller_motor_pulse_pin = 34;
 const int roller_direction = 52;
 
-const int release_servo_pin = 14;
+const int release_servo_pin = 38;
 
 Servo release_servo;
 
