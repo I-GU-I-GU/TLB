@@ -17,6 +17,7 @@ void stop_sliding_motor_step2(void);
 
 // servo functions
 void on_release_servo(void);
+void on_half_release_servo(void);
 void off_release_servo(void);
 //void servo_shift(void);
 // void on_chuck_servo(void);

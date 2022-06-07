@@ -10,7 +10,7 @@ const int sliding_motor_pulse_pin2 = 26;         // please check with developer
 const int sliding_motor_dirction_pin = 24;
 
 const int roller_motor_pulse_pin = 34;
-const int roller_direction = 52;
+const int roller_direction =32;
 
 const int release_servo_pin = 38;
 
@@ -89,9 +89,14 @@ void on_release_servo(void)
 {
     release_servo.write(120);
 }
+void on_half_release_servo(void)
+{
+    release_servo.write(80);
+}
+
 void off_release_servo(void)
 {
-    release_servo.write(27);
+    release_servo.write(50);
 }
 // void servo_shift(void)
 // {

@@ -60,7 +60,7 @@ unsigned long check_origin_timer = millis();
 ///
 bool run_sticker_roller = false;
 unsigned long sticker_roller_timer = 0;
-const int sticker_roller_period = 500;
+const int sticker_roller_period = 100;
 bool sticker_roller_logic = false;
 
 unsigned long free_timer = 0;
@@ -93,19 +93,24 @@ void loop()
       delay(1000);
       open_tray();
       delay(500);
+      reset_printer_operation();
+      release_printer();
       on_release_servo();
       //on_chuck_servo();
+      on_motor_flip_backward();
       delay(500);
       ////////////////////////tets flip///////////////////////
-      on_motor_flip_backward();
+      //on_motor_flip_backward();
       linere_backward();
       delay(2000);
       linere_forward();
-      delay(200);
+      reset_printer_operation();
+      delay(300);
       off_linere();
       off_motor_flip();
       /////////////////////////test flip//////////////////////
       off_release_servo();
+      
       //off_chuck_servo();
       close_tray();
       // ===== move more 10 ms ===========
@@ -140,7 +145,7 @@ void loop()
   // ============================================
   if(run_sticker_roller)
   {
-    if((micros()-sticker_roller_period)>=3000)
+    if((micros()-sticker_roller_timer)>=sticker_roller_period)
     {
       sticker_roller_logic =!sticker_roller_logic;
       write_roller_pulse(sticker_roller_logic);
@@ -158,11 +163,19 @@ void run_machine(void)
   {
     case 1: // move to specific silo
     { 
-      Relay_ON();
-      operate_printer();
-      sliding_motor_forward();  //   reverse direction of sliding motor
-      run_sliding_motor();
-      running_state = 2;
+      int limit_value = check_printer_out_side();
+      if(limit_value == 0)
+      {
+        running_state = 1;
+      }
+      else
+      {
+        Relay_ON();
+        operate_printer();
+        sliding_motor_forward();  //   reverse direction of sliding motor
+        run_sliding_motor();
+        running_state = 2;
+      }
       break;
     }
     case 2:
@@ -304,7 +317,7 @@ void run_machine(void)
           roller_motor_timer = micros();
           roller_motor_period = 200;
           roller_pulse_counter = 0;
-          roller_pulse_target = 500;       // 0.25 seconds
+          roller_pulse_target = 250;       // 0.25 seconds
          }
       break;
     }
@@ -369,6 +382,8 @@ void run_machine(void)
           open_tray();
           run_sliding_motor();
           last_time = millis();
+          //========= 
+          linere_backward();
         }
       }
       break;
@@ -378,7 +393,7 @@ void run_machine(void)
       int sensor_value = get_proximeter_values();
       if(sensor_value == 3)
         {
-          on_release_servo();
+          on_half_release_servo();
           //on_chuck_servo();
           release_printer();
           running_state = 15;
@@ -388,22 +403,25 @@ void run_machine(void)
     case 15:
     {
       int sensor_value = get_proximeter_values();
-      if(sensor_value == 1)
+      if(sensor_value == 2)
       {
         release_printer();
-        stop_sliding_motor();
+        //stop_sliding_motor();
         running_state = 16;
       }
       break;
     }
     case 16:
     {
-      if((millis()-tray_timer)>=open_tray_period)
+      int sensor_value = get_proximeter_values();
+      // if((millis()-tray_timer)>=open_tray_period)
+      if(sensor_value==1)
       {
-        on_release_servo();
+        stop_sliding_motor();
+        //on_release_servo();
         on_motor_flip_backward();
-        linere_backward();
-        delay(300);
+        //linere_backward();
+        //delay(1500);
         linere_forward();
         delay(300);
         off_linere();

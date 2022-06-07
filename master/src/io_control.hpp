@@ -26,6 +26,7 @@ void reinit_conveyor(void);
 void clear_lamp(void);
 void on_lamp(char lamp_number);
 
+
 void on_motor_flip_forward(void);
 void on_motor_flip_backward(void);
 void off_motor_flip(void);
@@ -33,3 +34,4 @@ void linere_forward(void);
 void linere_backward(void);
 void off_linere(void);
 bool check_flip_tube(void);
+bool check_printer_out_side(void);

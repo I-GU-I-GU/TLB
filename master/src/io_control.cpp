@@ -12,13 +12,13 @@ const int actuator_pin2 = 17;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-const int sensor_flip = 16;
+const int sensor_flip = 36;
 
-const int flip_motor_pin1 = 6;
-const int flip_motor_pin2 = 8;
+const int flip_motor_pin1 = 66;
+const int flip_motor_pin2 = 68;
 
-const int slide_flip_pin1 = 10;
-const int slide_flip_pin2 = 12;
+const int slide_flip_pin1 = 46;
+const int slide_flip_pin2 = 44;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,15 +39,21 @@ const int printer_control_bit0 = A10;
 // const int roller_status2 = A5;
 
 // lamp
-const int lamp1 = 40;
-const int lamp2 = 42;
-const int lamp3 = 44;
-const int lamp4 = 48;
+const int lamp1 = 55;
+const int lamp2 = 57;
+const int lamp3 = 59;
+const int lamp4 = 61;
+
+/// limit new
+
+const int limit_run_machine = 63;
 
 void initial_io_control(void){
     pinMode(AD0,OUTPUT);
     pinMode(AD1,OUTPUT);
     pinMode(AD2,OUTPUT);
+
+    pinMode(limit_run_machine,INPUT_PULLUP);
 
     // pinMode(roller_status0,INPUT_PULLUP);
     // pinMode(roller_status1,INPUT_PULLUP);
@@ -77,6 +83,12 @@ void initial_io_control(void){
     pinMode(lamp2,OUTPUT);
     pinMode(lamp3,OUTPUT);
     pinMode(lamp4,OUTPUT);
+
+    digitalWrite(lamp1,LOW);
+    digitalWrite(lamp2,LOW);
+    digitalWrite(lamp3,LOW);
+    digitalWrite(lamp4,LOW);
+
 
     /////flip_control/////
 
@@ -132,6 +144,10 @@ bool check_flip_tube(void)
     return digitalRead(sensor_flip);  
 }
 
+bool check_printer_out_side(void)
+{
+    return digitalRead(limit_run_machine);
+}
  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void operate_printer(void)
