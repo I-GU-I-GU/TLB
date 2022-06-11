@@ -486,7 +486,7 @@ void run_printer(void)
         {
           set_slab_motor_backward(); 
           slab_motor_period = slab_up;
-          slab_motor_target = 1100;   // previous slab_down1 = 800
+          slab_motor_target = 1350;   // previous slab_down1 = 800
           slab_motor_counter = 0;
           run_printer_state = 33;///////////////////////////////////////////////////////////////////////
           break;

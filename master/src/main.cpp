@@ -1,6 +1,13 @@
 //======= add description =====
 
 #include <main.hpp>
+#include<SoftwareSerial.h>
+
+const byte rxPin = A11;
+const byte txPin = 21;
+
+SoftwareSerial mySerial (rxPin, txPin);
+String serial_command = "";
 
 const String board_name = "TB001";
 unsigned long tray_timer = 0;
@@ -67,14 +74,15 @@ unsigned long free_timer = 0;
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial.flush();
-  while (!Serial);
+  mySerial.begin(9600);
+  //mySerial.flush();
+  //while (!mySerial);
   initial_variables();
   init_motors();
   init_sensors();
   initial_io_control();
   reset_io_control();
+  mySerial.println("KKKKKK");
 }
 //===========================================//
 
@@ -307,7 +315,7 @@ void run_machine(void)
     }
     case 11:
     {
-      if(read_limit_switch()==true)
+      if(read_limit_switch()==false)
         {
           running_state = 33;
           stop_sliding_motor_step2();
@@ -317,7 +325,7 @@ void run_machine(void)
           roller_motor_timer = micros();
           roller_motor_period = 200;
           roller_pulse_counter = 0;
-          roller_pulse_target = 250;       // 0.25 seconds
+          roller_pulse_target = 650;       // 0.25 seconds
          }
       break;
     }
@@ -393,7 +401,7 @@ void run_machine(void)
       int sensor_value = get_proximeter_values();
       if(sensor_value == 3)
         {
-          on_half_release_servo();
+          on_release_servo();
           //on_chuck_servo();
           release_printer();
           running_state = 15;
@@ -594,7 +602,7 @@ void interprete_command(String serial_command)
     }
     case 'g': // get state
     {
-      Serial.println(running_state);
+      mySerial.println(running_state);
       break;
     }
     case 't':
@@ -679,51 +687,51 @@ void debug_motor(int parameter)
     {
         case 1:
         {
-          Serial.println("Run silo 1 motor");
+          mySerial.println("Run silo 1 motor");
           run_silo_roller(1);
           break;
         }
         case 2:
         {
-          Serial.println("Run silo 2 motor");
+          mySerial.println("Run silo 2 motor");
           run_silo_roller(2);
           break;
         }
         case 3:
         {
-          Serial.println("Run silo 3 motor");
+          mySerial.println("Run silo 3 motor");
           run_silo_roller(3);
           break;
         }
         case 4:
         {
-          Serial.println("Run silo 4 motor");
+          mySerial.println("Run silo 4 motor");
           run_silo_roller(4);
           break;
         }
         case 5:
         {
-          Serial.println("Stop silo motor");
+          mySerial.println("Stop silo motor");
           stop_silo_roller();
           break;
         }
         case 6:
         {
-          Serial.println("Move sliding motor forward");
+          mySerial.println("Move sliding motor forward");
           sliding_motor_forward();
           run_sliding_motor();
           break;
         }
         case 7:
         {
-          Serial.println("Move sliding motor backward");
+          mySerial.println("Move sliding motor backward");
           sliding_motor_backward();
           run_sliding_motor();
           break;
         }
         case 8:
         {
-          Serial.println("Stop sliding motor");
+          mySerial.println("Stop sliding motor");
           stop_sliding_motor();
           break;
         }
@@ -732,4 +740,38 @@ void debug_motor(int parameter)
             // stop all motors
         }
     }
+}
+
+
+
+
+bool check_serial_command(void)
+{
+    bool interprete_status = false;
+    if(mySerial.available()){
+        char temp_command = mySerial.read();
+        if(temp_command == '\n')
+        {
+            interprete_status = true;
+        }
+        else
+        {
+            serial_command = serial_command + String(temp_command);
+        }  
+    }
+    return interprete_status;
+}
+
+
+String get_serial_command(void)
+{
+    String temp_command = serial_command;
+    serial_command = "";
+    return temp_command;
+}
+
+//*****************************
+void reset_serial_variables(void){
+    String serial_command = "";
+    String serial_response = "";
 }

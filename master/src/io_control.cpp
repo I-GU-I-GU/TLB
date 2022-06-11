@@ -1,48 +1,48 @@
 #include<Arduino.h>
 #include"io_control.hpp"
 
-const int AD0=A0;
+const int AD0=A1;
 const int AD1=A2;
-const int AD2=A4;
+const int AD2=A3;
 
 const int reset_pin = A7;
 
-const int actuator_pin1 = 15;
-const int actuator_pin2 = 17; 
+const int actuator_pin1 = 18;
+const int actuator_pin2 = 20; 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-const int sensor_flip = 36;
+const int sensor_flip = 16;
 
-const int flip_motor_pin1 = 66;
-const int flip_motor_pin2 = 68;
+const int flip_motor_pin1 = 6;
+const int flip_motor_pin2 = 8;
 
-const int slide_flip_pin1 = 46;
-const int slide_flip_pin2 = 44;
+const int slide_flip_pin1 = 10;
+const int slide_flip_pin2 = 12;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-const int limit_switch_pin = 13;  //limitBack
+const int limit_switch_pin = 17;  //limitBack
 
 const int over_limit_pin = 11;    //limitFront
 
-const int SS_relay = 27;               // plese check with developer //// pin 47
+const int SS_relay = 47;               // plese check with developer //// pin 47
 
 const int run_converyer = 46;           // please check with developer
 
-const int printer_control_bit2 = A6;
-const int printer_control_bit1 = A8;
-const int printer_control_bit0 = A10;
+const int printer_control_bit2 = A15;
+const int printer_control_bit1 = A14;
+const int printer_control_bit0 = A13;
 
 // const int roller_status0 = A1;
 // const int roller_status1 = A3;
 // const int roller_status2 = A5;
 
 // lamp
-const int lamp1 = 55;
-const int lamp2 = 57;
-const int lamp3 = 59;
-const int lamp4 = 61;
+const int lamp1 = 40;
+const int lamp2 = 42;
+const int lamp3 = 44;
+const int lamp4 = 48;
 
 /// limit new
 

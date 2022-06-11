@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include<serial_link.hpp>
+//#include<serial_link.hpp>
 #include<motors.hpp>
 #include<sensors.hpp>
 #include<io_control.hpp>
@@ -31,3 +31,8 @@ void run_process_state2(void);
 
 // for debugging
 void debug_motor(int parameter);
+
+
+bool check_serial_command(void);
+void reset_serial_variables(void);
+String get_serial_command(void);

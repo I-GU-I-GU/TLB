@@ -80,12 +80,16 @@ main_state = 0
 machine_state = 0
 comport = 'COM3'
 ser = serial.Serial(port=comport,baudrate=9600,timeout=1)
-time.sleep(10)
+time.sleep(5)
+ser.write(b'r\n')
+time.sleep(0.5)
+ser.read(100)
+time.sleep(5)
+
 while True:
     time.sleep(0.5)
     print('main state')
     print(main_state)
-    
     if main_state == 0:                         # idle state
         if ser.isOpen():
             time.sleep(5)

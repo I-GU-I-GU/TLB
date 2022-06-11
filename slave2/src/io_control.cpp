@@ -1,13 +1,13 @@
 #include"io_control.hpp"
 
 
-const int printer_control_bit2 = A6;
-const int printer_control_bit1 = A5;
-const int printer_control_bit0 = A4;
+const int printer_control_bit2 = A4;
+const int printer_control_bit1 = A3;
+const int printer_control_bit0 = A2;
 
-const int loadcell_pin = A3;
+const int loadcell_pin = A1;
 const int SS_Relay = 10;
-const int limit_switch_pin = 14;
+const int limit_switch_pin = 6;
 
 
 void Relay(void)

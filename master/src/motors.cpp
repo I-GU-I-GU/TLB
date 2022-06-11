@@ -5,14 +5,14 @@
 
 
 const int sliding_motor_pulse_pin = 28;
-const int sliding_motor_pulse_pin2 = 26;         // please check with developer
+const int sliding_motor_pulse_pin2 = 2;         // please check with developer
 
-const int sliding_motor_dirction_pin = 24;
+const int sliding_motor_dirction_pin = 26;
 
-const int roller_motor_pulse_pin = 34;
-const int roller_direction =32;
+const int roller_motor_pulse_pin = 31;
+const int roller_direction =4;
 
-const int release_servo_pin = 38;
+const int release_servo_pin = 14;
 
 Servo release_servo;
 
@@ -22,12 +22,12 @@ void write_roller_pulse(bool pulse_logic){
 
 void roller_forward(void)
 {
-    digitalWrite(roller_direction,LOW);
+    digitalWrite(roller_direction,HIGH);
 }
 
 void roller_backward(void)
 {
-    digitalWrite(roller_direction,HIGH);
+    digitalWrite(roller_direction,LOW);
 }    
 
 void run_sliding_motor(void)
@@ -87,16 +87,16 @@ void sliding_motor_backward(void){
 
 void on_release_servo(void)
 {
-    release_servo.write(120);
+    release_servo.write(100);
 }
 void on_half_release_servo(void)
 {
-    release_servo.write(80);
+    release_servo.write(100);
 }
 
 void off_release_servo(void)
 {
-    release_servo.write(50);
+    release_servo.write(30);
 }
 // void servo_shift(void)
 // {
@@ -151,7 +151,6 @@ void test_servo(int parameter)
             break;
     }
 }
-
 
 
 
