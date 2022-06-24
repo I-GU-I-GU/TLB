@@ -4,6 +4,7 @@ import os
 import time
 import datetime
 from mysql.connector import connect
+import time
 
 def save_conveyor_status(conveyor_status):
     if conveyor_status == b'3':
@@ -78,18 +79,15 @@ state_26_counter = 0
 # =========== main program ================
 main_state = 0
 machine_state = 0
-comport = 'COM3'
+comport = 'COM5'
 ser = serial.Serial(port=comport,baudrate=9600,timeout=1)
-time.sleep(5)
-ser.write(b'r\n')
-time.sleep(0.5)
-ser.read(100)
-time.sleep(5)
-
+time.sleep(10)
 while True:
     time.sleep(0.5)
-    print('main state')
-    print(main_state)
+    print(time.time())
+    #print('main state')
+    #print(main_state)
+    
     if main_state == 0:                         # idle state
         if ser.isOpen():
             time.sleep(5)
@@ -145,7 +143,7 @@ while True:
         # print('jam counter ')
         # print(jam_counter)
 
-        if jam_counter >= 5 :
+        if jam_counter >= 10 :
             jam_counter = 0
             print("jaming")
             ser.write(b'm0\n')

@@ -75,6 +75,9 @@ void loop() {
   //********** process sticker state ******************
   byte printer_control_signal = get_printer_control_signal();
   //printer_control_signal = 1;
+  // Serial.print(",");
+  // Serial.println(get_weight());
+  // delay(100);
   switch(printer_control_signal)
   {
     case 1:
@@ -144,7 +147,9 @@ void release_pulling_motor(void)
 }
 
 void run_printer(void)
-  {    
+  { 
+    // Serial.print(",");
+    // Serial.println(get_weight());
     switch(run_printer_state)
       {
         case 0:
@@ -448,7 +453,7 @@ void run_printer(void)
           pull_motor_timer = micros();
           pull_motor_period = pull_period;
           pull_motor_counter =0;
-          pull_motor_target = 2*pull_forward;     
+          pull_motor_target = 1.5*pull_forward;     
           run_printer_state = 29;
           break;
         }

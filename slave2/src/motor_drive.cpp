@@ -2,10 +2,10 @@
 
 
 const int pull_motor_pulse = 3;
-const int pull_motor_direction = 2;
+const int pull_motor_direction = 4;
 
 const int slab_motor_pulse = 5;
-const int slab_motor_direction = 4;
+const int slab_motor_direction = 6;
 
 void initial_motors(void){
     // printer control pin
@@ -17,14 +17,14 @@ void initial_motors(void){
 
 void set_pull_motor_forward(void)
 {
-    digitalWrite(pull_motor_direction,LOW);         // 1st version
-    //digitalWrite(pull_motor_direction,HIGH);             // 2nd version
+    //digitalWrite(pull_motor_direction,LOW);         // 1st version
+    digitalWrite(pull_motor_direction,HIGH);             // 2nd version
 }
 
 void set_pull_motor_backward(void)
 {
-    digitalWrite(pull_motor_direction,HIGH);        // 1st version
-    //digitalWrite(pull_motor_direction,LOW);
+    //digitalWrite(pull_motor_direction,HIGH);        // 1st version
+    digitalWrite(pull_motor_direction,LOW);
 }
 
 void run_pull_motor(bool output_logic)
@@ -34,12 +34,12 @@ void run_pull_motor(bool output_logic)
 
 void set_slab_motor_forward(void)
 {
-    digitalWrite(slab_motor_direction,LOW);
+    digitalWrite(slab_motor_direction,HIGH);
 }
 
 void set_slab_motor_backward(void)
 {
-    digitalWrite(slab_motor_direction,HIGH);
+    digitalWrite(slab_motor_direction,LOW);
 }
 
 void run_slab_motor(bool output_logic)

@@ -11,8 +11,8 @@ String serial_command = "";
 
 const String board_name = "TB001";
 unsigned long tray_timer = 0;
-unsigned int open_tray_period = 1000;  // time in milliseconds
-unsigned int close_tray_period = 900;  // time in milliseconds
+unsigned int open_tray_period = 1300;  // time in milliseconds
+unsigned int close_tray_period = 1000;  // time in milliseconds
 
 
 unsigned long period = 4000;  // time in milliseconds
@@ -32,7 +32,13 @@ unsigned long linere_time = 0;
 unsigned int linere_period = 1500;
 
 unsigned long tube_drop_time = 0;
-unsigned int tube_drop_period = 500;
+unsigned int tube_drop_period = 900;
+
+unsigned long off_linere_time = 0;
+unsigned int off_linere_period = 200;
+
+unsigned long trunoff_AC_timer = 0;
+unsigned long trunoff_AC_period = 1000;
 
 ////////////////////////////////////////////////////////
 
@@ -232,13 +238,22 @@ void run_machine(void)
     {
       if(millis()-tube_drop_time >= tube_drop_period)
       {
-        running_state = 7;
+        running_state = 66;
         //off_release_servo();
         // move motor on top of actuator close to the tube 
-        linere_backward();
+        //linere_backward();
+        off_linere_time = millis();
         free_timer = millis();
       }
       break;
+    }
+    case 66:
+    {
+       if(millis()-off_linere_time >= 350)
+       {
+          linere_backward();
+          running_state = 7;
+       }
     }
     case 7:
     {   //servo_shift();
@@ -315,7 +330,7 @@ void run_machine(void)
     }
     case 11:
     {
-      if(read_limit_switch()==false)
+      if(read_limit_switch()==true)
         {
           running_state = 33;
           stop_sliding_motor_step2();
@@ -325,7 +340,7 @@ void run_machine(void)
           roller_motor_timer = micros();
           roller_motor_period = 200;
           roller_pulse_counter = 0;
-          roller_pulse_target = 650;       // 0.25 seconds
+          roller_pulse_target = 800;       // 0.25 seconds
          }
       break;
     }
@@ -391,7 +406,7 @@ void run_machine(void)
           run_sliding_motor();
           last_time = millis();
           //========= 
-          linere_backward();
+          // linere_backward();
         }
       }
       break;
@@ -416,39 +431,50 @@ void run_machine(void)
         release_printer();
         //stop_sliding_motor();
         running_state = 16;
+        off_linere_time = millis();
       }
       break;
     }
+
     case 16:
+    {
+     if(millis()-off_linere_time >= 100)
+     {
+      linere_backward();
+      running_state = 17;
+     } 
+    }
+    case 17:
     {
       int sensor_value = get_proximeter_values();
       // if((millis()-tray_timer)>=open_tray_period)
       if(sensor_value==1)
       {
+        
         stop_sliding_motor();
         //on_release_servo();
         on_motor_flip_backward();
         //linere_backward();
-        //delay(1500);
+        delay(1000);
         linere_forward();
         delay(300);
         off_linere();
         off_motor_flip();
         reset_printer_operation();
         chuck_timer = millis();
-        running_state = 17;
+        running_state = 19;
       }
       break;
     }
-    case 17:
-    {
-      if((millis()-chuck_timer)>= chuck_period)
-      {
-        running_state = 18;
-      }
-      break;
-    }
-    case 18:
+    // case 18:
+    // {
+    //   if((millis()-chuck_timer)>= chuck_period)
+    //   {
+    //     running_state = 19;
+    //   }
+    //   break;
+    // }
+    case 19:
     {
       off_release_servo();
       //off_chuck_servo();
@@ -501,7 +527,7 @@ void interprete_command(String serial_command)
     }
     case 'r': // reset mcu
     {
-      Serial.println("reset command");
+      mySerial.println("reset command");
       delay(100);
       asm volatile ("jmp 0");
       break;
@@ -509,12 +535,12 @@ void interprete_command(String serial_command)
     //////////////////////////////////////////////////
     case 'c': // check sensors value
     {
-      Serial.print(get_proximeter_values(),HEX);
+      mySerial.print(get_proximeter_values(),HEX);
       break;
     }
     case 'p':
     {
-      Serial.println(board_name);
+      mySerial.println(board_name);
       break;
     }
     case 'm': // 
@@ -523,61 +549,61 @@ void interprete_command(String serial_command)
       {
         case '0':
         {
-          Serial.println("Relese printer");
+          mySerial.println("Relese printer");
           release_printer();
           break;
         }
         case '1':
         {
-          Serial.println("Operate printer");
+          mySerial.println("Operate printer");
           operate_printer();
           break;
         }
         case '2':
         {
-          Serial.println("Reset printer");
+          mySerial.println("Reset printer");
           reset_printer_operation();
           break;
         }
         case '3':
         {
-          Serial.println("Open tray");
+          mySerial.println("Open tray");
           open_tray();
           break;
         }
         case '4':
         {
-          Serial.println("Close tray");
+          mySerial.println("Close tray");
           close_tray();
           break;
         }
         case '5':
         {
-          Serial.println("Turnoff actuator");
+          mySerial.println("Turnoff actuator");
           turnoff_actuator();
           break;
         }
         case '6':
         {
-          Serial.println("On relay");
+          mySerial.println("On relay");
           Relay_ON();
           break;
         }
         case '7':
         {
-          Serial.println("off relay");
+          mySerial.println("off relay");
           Relay_OFF();
           break;
         }
         case '8':
         {
-          Serial.println("Run sticker motor");
+          mySerial.println("Run sticker motor");
           run_sticker_roller = true;
           break;
         }
         case '9':
         {
-          Serial.println("Stop sticker roller");
+          mySerial.println("Stop sticker roller");
           run_sticker_roller = false;
           break;
         }
@@ -597,6 +623,8 @@ void interprete_command(String serial_command)
         running_state = 1;
         sliding_motor_timer = micros();
         sliding_motor_period = 800;
+        mySerial.print("box ");
+        mySerial.println(silo_number);
       }
       break;
     }
@@ -630,31 +658,38 @@ void interprete_command(String serial_command)
     case 'f':
     {
       on_motor_flip_forward();
+      mySerial.println("on_motor_flip_forward");
       break;
     }
     case 'b':
     {
       on_motor_flip_backward();
+      mySerial.println("on_motor_flip_backward");
       break;
     }
     case 'e':
     {
       off_motor_flip();
+      mySerial.println("off_motor_flip");
       break;
     }
     case 'w':
     {
       linere_backward();
+      mySerial.println("linere_backward");
       break;
     }
     case 'i':
     {
       linere_forward();
+      mySerial.println("linere_forward");
       break;
     }
     case 'q':
     {
+      
       off_linere();
+      mySerial.println("off_linere");
       break;
     }
     // case 'x':
