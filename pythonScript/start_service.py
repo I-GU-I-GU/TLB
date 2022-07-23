@@ -24,7 +24,7 @@ while True:
             time.sleep(5)
             
     if main_state == 1:
-        os.startfile("D:\\TLB-main015\\pythonScript\\load_program.bat")
+        os.startfile("D:\\TLB\pythonScript\\load_program.bat")
         break
 
 exit()

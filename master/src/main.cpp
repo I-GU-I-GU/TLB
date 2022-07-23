@@ -6,13 +6,13 @@
 const byte rxPin = A11;
 const byte txPin = 21;
 
-SoftwareSerial mySerial (rxPin, txPin);
+//SoftwareSerial mySerial (rxPin, txPin);
 String serial_command = "";
 
-const String board_name = "TB001";
+const String board_name = "TB013";
 unsigned long tray_timer = 0;
-unsigned int open_tray_period = 1300;  // time in milliseconds
-unsigned int close_tray_period = 1000;  // time in milliseconds
+unsigned int open_tray_period = 1000;  // time in milliseconds
+unsigned int close_tray_period = 900;  // time in milliseconds
 
 
 unsigned long period = 4000;  // time in milliseconds
@@ -32,13 +32,7 @@ unsigned long linere_time = 0;
 unsigned int linere_period = 1500;
 
 unsigned long tube_drop_time = 0;
-unsigned int tube_drop_period = 900;
-
-unsigned long off_linere_time = 0;
-unsigned int off_linere_period = 200;
-
-unsigned long trunoff_AC_timer = 0;
-unsigned long trunoff_AC_period = 1000;
+unsigned int tube_drop_period = 1800;
 
 ////////////////////////////////////////////////////////
 
@@ -48,6 +42,12 @@ const int move_more_time = 5;
 
 int silo_number = 0;
 int running_state = 0;
+
+int test_state = 0;
+unsigned long test_time = 0;
+unsigned int test_period = 1000;
+
+
 /////////////// sliding motor ///////////////////
 bool sliding_motor_logic;
 unsigned long sliding_motor_timer;
@@ -68,7 +68,8 @@ bool printer_runing = false;
 bool is_origin = false;
 bool origin_pulse_logic = false;
 unsigned long check_origin_timer = millis();
-
+/// 
+bool edge_machine = false;
 
 ///
 bool run_sticker_roller = false;
@@ -80,7 +81,7 @@ unsigned long free_timer = 0;
 
 void setup()
 {
-  mySerial.begin(9600);
+  Serial.begin(9600);
   //mySerial.flush();
   //while (!mySerial);
   initial_variables();
@@ -88,12 +89,72 @@ void setup()
   init_sensors();
   initial_io_control();
   reset_io_control();
-  mySerial.println("KKKKKK");
 }
 //===========================================//
 
 void loop()
 {
+  if (edge_machine)
+  {
+    switch(test_state)
+      {
+        case 1:
+        { 
+          sliding_motor_forward();  //return sliding
+          run_sliding_motor();
+          test_state = 2;
+          break;
+        }
+        case 2:
+        {
+          int sensor_value = get_proximeter_values();
+          if(sensor_value == 2)
+          {
+            stop_sliding_motor();
+            test_time= millis();
+            test_state = 3;
+          }
+          break;
+        }
+        case 3:
+        {
+          if((millis()-test_time)>=test_period)
+          {
+            test_state = 4;
+          }
+          break;
+        }
+        case 4:
+        {
+            sliding_motor_backward();  
+            run_sliding_motor();  
+            test_state = 5;  
+          break;
+        }
+
+        case 5:
+        {
+          int sensor_value = get_proximeter_values();
+          if(sensor_value == 1)
+          {
+            stop_sliding_motor();
+            test_state = 6;
+          }
+          break;
+        }
+        case 6:
+        {
+          edge_machine = false;
+          break;
+        }
+        default:
+        {
+          edge_machine = false;
+          break;
+        }
+      }
+  }
+
   if(is_origin == false)
   { 
     Relay_ON();
@@ -171,342 +232,104 @@ void loop()
 
 void run_machine(void)
 {
-  // int flip_tube_val = check_flip_tube();
-  // Serial.println(flip_tube_val);
   switch(running_state)/////strat_work/////
   {
     case 1: // move to specific silo
     { 
       int limit_value = check_printer_out_side();
-      if(limit_value == 0)
+      if(limit_value == 1)
       {
         running_state = 1;
       }
       else
       {
         Relay_ON();
+        off_release_servo();
+        close_tray();
         operate_printer();
-        sliding_motor_forward();  //   reverse direction of sliding motor
-        run_sliding_motor();
         running_state = 2;
       }
       break;
     }
     case 2:
     {
-      int sensor_value = get_proximeter_values();
-      if(sensor_value == silo_number)
       {
-        stop_sliding_motor();
-        run_silo_roller(silo_number);
+        sliding_motor_forward();  
+        run_sliding_motor();
         running_state = 3;
       }
       break;
     }
     case 3:
-    {   // infrared sensor detect tube
-      int infrared_value = check_tube_drop();
-      if(infrared_value == 1)
-        {
-          stop_silo_roller();
-          last_time = millis();
-          running_state = 5;
-        }
-      if(infrared_value == 0)
-      {
-        running_state = 61;
-      }
-      break;
+    {   
+      run_sticker_roller = true;
+      running_state = 4;
     }
-    case 5:   // wait tube drop on actuator
-    {
-      if((millis()-last_time)>=delay_AC)
-      {
-        //servo_shift();
-        open_tray();
-        tray_timer = millis();
-        tube_drop_time = millis();
-        flip_time = millis();
-        running_state = 6;
-      }
-      break;
-    }
-
-    ////////////////////////////////////////////test flip//////////////////////////////////////////////////////
-
-    case 6:
-    {
-      if(millis()-tube_drop_time >= tube_drop_period)
-      {
-        running_state = 66;
-        //off_release_servo();
-        // move motor on top of actuator close to the tube 
-        //linere_backward();
-        off_linere_time = millis();
-        free_timer = millis();
-      }
-      break;
-    }
-    case 66:
-    {
-       if(millis()-off_linere_time >= 350)
-       {
-          linere_backward();
-          running_state = 7;
-       }
-    }
-    case 7:
-    {   //servo_shift();
-        int flip_tube_val = check_flip_tube();
-        if(flip_tube_val == 0)
-        {
-          running_state = 88;
-          off_motor_flip();
-        }
-        else
-        {
-          on_motor_flip_forward();
-        }
-        // watchdog move out from this state after 1 second
-        if(millis()-free_timer>=1500)
-        {
-          running_state = 88;
-        }
-      break;
-    }
-
-    case 88:
-    {
-      linere_forward();
-      free_timer = millis();
-      running_state = 89;
-      break;
-    }
-    case 89:
-    {
-      if(millis()-free_timer >=200)
-      {
-        off_linere();
-        off_motor_flip();
-        running_state = 8;
-      }
-      break;
-    }
-
-
-    ///////////////////////////////////////////////test flip/////////////////////////////////////////////////
-
-    case 8:
-    {
-      if((millis()-tray_timer)>=open_tray_period)
-      {
-        close_tray();
-        tray_timer = millis();
-        running_state = 9;
-      }
-      break;
-    }
-    case 9:
-    {
-      if((millis()-tray_timer)>=close_tray_period)
-      {
-        run_sliding_motor();
-        last_time = millis();
-        running_state = 10;
-      }
-      break;
-    }
-    case 10:
+    case 4:
     { 
-      int sensor_value = get_proximeter_values();
-      if(sensor_value == 4)
-      {
-        stop_sliding_motor();
-        run_sliding_motor_step2();
-        last_time = millis();
-        running_state = 11;
-      }
+      running_state = 5;
       break;
     }
-    case 11:
+    case 5:   
     {
-      if(read_limit_switch()==true)
-        {
-          running_state = 33;
-          stop_sliding_motor_step2();
-          sliding_motor_backward(); // ready to return home
-          roller_backward();
-        //****** set roller motor parameter *******//
-          roller_motor_timer = micros();
-          roller_motor_period = 200;
-          roller_pulse_counter = 0;
-          roller_pulse_target = 800;       // 0.25 seconds
-         }
-      break;
-    }
-      case 33:
-    {
-      // run roller first step
-      if((micros()-roller_motor_timer)>=roller_motor_period)
-      {
-        roller_motor_logic =! roller_motor_logic;
-        write_roller_pulse(roller_motor_logic);
-        roller_motor_timer = micros();
-        // check pulse counter
-        roller_pulse_counter = roller_pulse_counter +1;
-        if(roller_pulse_counter>=roller_pulse_target)
-        {
-          // set roller second speed
-          roller_forward();
-          roller_motor_timer = micros();
-          roller_motor_period = 200;
-          roller_pulse_counter = 0;
-          roller_pulse_target = 2000;     
-          running_state = 12;
-        }
-      }
-      break;
-    }
-    case 12:
-    {
-      // run roller first step
-      if((micros()-roller_motor_timer)>=roller_motor_period)
-      {
-        roller_motor_logic =! roller_motor_logic;
-        write_roller_pulse(roller_motor_logic);
-        roller_motor_timer = micros();
-        // check pulse counter
-        roller_pulse_counter = roller_pulse_counter +1;
-        if(roller_pulse_counter>=roller_pulse_target)
-        {
-          // set roller second speed
-          roller_motor_timer = micros();
-          roller_motor_period = 80;
-          roller_pulse_counter = 0;
-          roller_pulse_target = 6250;     // 1 second
-          running_state = 13;
-        }
-      }
-      break;
-    }
-    case 13:
-    {
-      // run roller second step
-      if((micros()-roller_motor_timer)>=roller_motor_period)
-      {
-        roller_motor_logic =! roller_motor_logic;
-        write_roller_pulse(roller_motor_logic);
-        roller_motor_timer = micros();
-        // check pulse counter
-        roller_pulse_counter = roller_pulse_counter +1;
-        if(roller_pulse_counter>=roller_pulse_target)
-        {
-          running_state = 14;
-          open_tray();
-          run_sliding_motor();
-          last_time = millis();
-          //========= 
-          // linere_backward();
-        }
-      }
-      break;
-    }
-    case 14:
-    {
-      int sensor_value = get_proximeter_values();
-      if(sensor_value == 3)
-        {
-          on_release_servo();
-          //on_chuck_servo();
-          release_printer();
-          running_state = 15;
-        }
-      break;
-    }
-    case 15:
-    {
+     {
       int sensor_value = get_proximeter_values();
       if(sensor_value == 2)
       {
-        release_printer();
-        //stop_sliding_motor();
-        running_state = 16;
-        off_linere_time = millis();
+        stop_sliding_motor();
+        running_state = 6;
+        test_time = millis();
       }
       break;
     }
 
-    case 16:
-    {
-     if(millis()-off_linere_time >= 100)
-     {
-      linere_backward();
-      running_state = 17;
-     } 
+    case 6:
+    { 
+      if((millis()-test_time)>=test_period)
+        {
+          release_printer();
+          running_state = 7;
+        }
+      break;
     }
-    case 17:
+    case 7:
+    {  
+      reset_printer_operation(); 
+      sliding_motor_backward();
+      run_sliding_motor();
+      open_tray();
+      on_release_servo();
+      running_state = 8;
+      break;
+    }
+
+    case 8:
     {
       int sensor_value = get_proximeter_values();
-      // if((millis()-tray_timer)>=open_tray_period)
-      if(sensor_value==1)
+      if(sensor_value == 1) 
       {
-        
         stop_sliding_motor();
-        //on_release_servo();
-        on_motor_flip_backward();
-        //linere_backward();
-        delay(1000);
-        linere_forward();
-        delay(300);
-        off_linere();
-        off_motor_flip();
-        reset_printer_operation();
-        chuck_timer = millis();
-        running_state = 19;
-      }
+        off_release_servo();
+        run_sticker_roller = false;
+        running_state = 26;
+      }     
+
       break;
     }
-    // case 18:
-    // {
-    //   if((millis()-chuck_timer)>= chuck_period)
-    //   {
-    //     running_state = 19;
-    //   }
-    //   break;
-    // }
-    case 19:
-    {
-      off_release_servo();
-      //off_chuck_servo();
-      close_tray();
-      // Serial.print("ok");
-      move_more = true;
-      move_more_timer = millis();
-      running_state = 26;
-      break;
-    }
+
     case 26:        // process end here
     {
       //Serial.print("ok");
       break;
     }
 
-    // wait tube ============
-    case 61:
-    { 
-     if(check_tube_drop())
-        {
-         stop_silo_roller();
-         running_state = 3;
-        }
-      break;
-    }
-    default:
-    {
+      default:
+      {
 
-    }
+      }
+   }
   }
- }
+}
 //********************************************//
 void initial_variables(void)
 {
@@ -527,7 +350,7 @@ void interprete_command(String serial_command)
     }
     case 'r': // reset mcu
     {
-      mySerial.println("reset command");
+      Serial.println("reset command");
       delay(100);
       asm volatile ("jmp 0");
       break;
@@ -535,12 +358,12 @@ void interprete_command(String serial_command)
     //////////////////////////////////////////////////
     case 'c': // check sensors value
     {
-      mySerial.print(get_proximeter_values(),HEX);
+      Serial.print(get_proximeter_values(),HEX);
       break;
     }
     case 'p':
     {
-      mySerial.println(board_name);
+      Serial.println(board_name);
       break;
     }
     case 'm': // 
@@ -549,61 +372,61 @@ void interprete_command(String serial_command)
       {
         case '0':
         {
-          mySerial.println("Relese printer");
+          Serial.println("Relese printer");
           release_printer();
           break;
         }
         case '1':
         {
-          mySerial.println("Operate printer");
+          Serial.println("Operate printer");
           operate_printer();
           break;
         }
         case '2':
         {
-          mySerial.println("Reset printer");
+          Serial.println("Reset printer");
           reset_printer_operation();
           break;
         }
         case '3':
         {
-          mySerial.println("Open tray");
+          Serial.println("Open tray");
           open_tray();
           break;
         }
         case '4':
         {
-          mySerial.println("Close tray");
+          Serial.println("Close tray");
           close_tray();
           break;
         }
         case '5':
         {
-          mySerial.println("Turnoff actuator");
+          Serial.println("Turnoff actuator");
           turnoff_actuator();
           break;
         }
         case '6':
         {
-          mySerial.println("On relay");
+          Serial.println("On relay");
           Relay_ON();
           break;
         }
         case '7':
         {
-          mySerial.println("off relay");
+          Serial.println("off relay");
           Relay_OFF();
           break;
         }
         case '8':
         {
-          mySerial.println("Run sticker motor");
+          Serial.println("Run sticker motor");
           run_sticker_roller = true;
           break;
         }
         case '9':
         {
-          mySerial.println("Stop sticker roller");
+          Serial.println("Stop sticker roller");
           run_sticker_roller = false;
           break;
         }
@@ -623,16 +446,24 @@ void interprete_command(String serial_command)
         running_state = 1;
         sliding_motor_timer = micros();
         sliding_motor_period = 800;
-        mySerial.print("box ");
-        mySerial.println(silo_number);
       }
       break;
     }
     case 'g': // get state
     {
-      mySerial.println(running_state);
+      Serial.println(running_state);
       break;
     }
+
+
+    case 'h':
+    {
+      Serial.println("run motor edge");
+      edge_machine = false;
+      test_state = 1;
+      break;
+    }
+    
     case 't':
     {
       int servo_parameter = int(serial_command[1]-'0');
@@ -658,38 +489,31 @@ void interprete_command(String serial_command)
     case 'f':
     {
       on_motor_flip_forward();
-      mySerial.println("on_motor_flip_forward");
       break;
     }
     case 'b':
     {
       on_motor_flip_backward();
-      mySerial.println("on_motor_flip_backward");
       break;
     }
     case 'e':
     {
       off_motor_flip();
-      mySerial.println("off_motor_flip");
       break;
     }
     case 'w':
     {
       linere_backward();
-      mySerial.println("linere_backward");
       break;
     }
     case 'i':
     {
       linere_forward();
-      mySerial.println("linere_forward");
       break;
     }
     case 'q':
     {
-      
       off_linere();
-      mySerial.println("off_linere");
       break;
     }
     // case 'x':
@@ -722,51 +546,51 @@ void debug_motor(int parameter)
     {
         case 1:
         {
-          mySerial.println("Run silo 1 motor");
+          Serial.println("Run silo 1 motor");
           run_silo_roller(1);
           break;
         }
         case 2:
         {
-          mySerial.println("Run silo 2 motor");
+          Serial.println("Run silo 2 motor");
           run_silo_roller(2);
           break;
         }
         case 3:
         {
-          mySerial.println("Run silo 3 motor");
+          Serial.println("Run silo 3 motor");
           run_silo_roller(3);
           break;
         }
         case 4:
         {
-          mySerial.println("Run silo 4 motor");
+          Serial.println("Run silo 4 motor");
           run_silo_roller(4);
           break;
         }
         case 5:
         {
-          mySerial.println("Stop silo motor");
+          Serial.println("Stop silo motor");
           stop_silo_roller();
           break;
         }
         case 6:
         {
-          mySerial.println("Move sliding motor forward");
+          Serial.println("Move sliding motor forward");
           sliding_motor_forward();
           run_sliding_motor();
           break;
         }
         case 7:
         {
-          mySerial.println("Move sliding motor backward");
+          Serial.println("Move sliding motor backward");
           sliding_motor_backward();
           run_sliding_motor();
           break;
         }
         case 8:
         {
-          mySerial.println("Stop sliding motor");
+          Serial.println("Stop sliding motor");
           stop_sliding_motor();
           break;
         }
@@ -783,8 +607,8 @@ void debug_motor(int parameter)
 bool check_serial_command(void)
 {
     bool interprete_status = false;
-    if(mySerial.available()){
-        char temp_command = mySerial.read();
+    if(Serial.available()){
+        char temp_command = Serial.read();
         if(temp_command == '\n')
         {
             interprete_status = true;

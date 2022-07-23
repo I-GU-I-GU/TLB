@@ -29,8 +29,8 @@ unsigned int slab_motor_counter = 0;
 bool slab_motor_logic = false;
 
 const int loadcell_target = 150;
-const int slap_up_down = 1500;
-const int slab_down = 1500;
+const int slap_up_down = 1750;
+const int slab_down = 1300;
 
 unsigned long delay_slab = 500;
 unsigned long delay_slab_time = 0;
@@ -39,11 +39,11 @@ unsigned long delay_slab_time = 0;
 unsigned long delay_off = 6000;
 unsigned long delay_ST = 0;
 
-const int delay_startup = 1700;
+const int delay_startup = 3000;
 unsigned long startup_timer = 0;
 
 const int slab_test = 1000;
-const int pull_forward = 500;
+const int pull_forward = 900;
 const int slab_down1 = 800;
 const int pull_back1 = 200;
 const int slap_period = 10;
@@ -75,9 +75,6 @@ void loop() {
   //********** process sticker state ******************
   byte printer_control_signal = get_printer_control_signal();
   //printer_control_signal = 1;
-  // Serial.print(",");
-  // Serial.println(get_weight());
-  // delay(100);
   switch(printer_control_signal)
   {
     case 1:
@@ -113,7 +110,7 @@ void release_pulling_motor(void)
       set_pull_motor_backward();
       pull_motor_timer = micros();
       pull_motor_period = 30;     // first version pulse_period = 30
-      pull_motor_target =1200;
+      pull_motor_target = 2000;
       pull_motor_counter = 0;
       release_state = 1;
       break;
@@ -147,9 +144,7 @@ void release_pulling_motor(void)
 }
 
 void run_printer(void)
-  { 
-    // Serial.print(",");
-    // Serial.println(get_weight());
+  {    
     switch(run_printer_state)
       {
         case 0:
@@ -306,7 +301,7 @@ void run_printer(void)
         {
           set_slab_motor_backward(); 
           slab_motor_period = slab_up;
-          slab_motor_target = 1100;   // previous slab_down1 = 800
+          slab_motor_target = 1200;   // previous slab_down1 = 800
           slab_motor_counter = 0;
           run_printer_state = 15;///////////////////////////////////////////////////////////////////////
           break;
@@ -371,7 +366,7 @@ void run_printer(void)
          {
           set_slab_motor_forward(); 
           slab_motor_period = slab_up;
-          slab_motor_target = 1000;   // previous slab_down1 = 800
+          slab_motor_target = 1300;   // previous slab_down1 = 800
           slab_motor_counter = 0;
           run_printer_state = 21;
           break;
@@ -395,7 +390,7 @@ void run_printer(void)
         case 22:
         {
           delay_slab_time = millis();
-          delay_slab = 200;
+          delay_slab = 300;
           run_printer_state = 23;
           break;
         }
@@ -491,7 +486,7 @@ void run_printer(void)
         {
           set_slab_motor_backward(); 
           slab_motor_period = slab_up;
-          slab_motor_target = 1350;   // previous slab_down1 = 800
+          slab_motor_target = 1400;   // previous slab_down1 = 800
           slab_motor_counter = 0;
           run_printer_state = 33;///////////////////////////////////////////////////////////////////////
           break;

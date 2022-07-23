@@ -12,12 +12,6 @@ const int motor4_pulse = 9;
 
 unsigned long motor_timer = 0;   // get time from micros() function
 const int motor_pulse_period = 500;  // time in microseconds
-const int motor_pulse_period1 = 300;
-unsigned int pulse_period = 0;
-
-unsigned long stuck_timer = 0;
-const int stuck_period = 2000;
-bool stuck_logic = true;
 
 bool pulse_logic = false;
 int roller_state = 0;
@@ -28,6 +22,7 @@ int release_state = 0;
 
 void initial_ios(void);
 byte get_address(void);
+
 void initial_motors(void);
 void run_step_motor(byte motor_number,bool output_logic);
 void stop_all_motors(void);
@@ -39,7 +34,6 @@ void setup(){
   initial_motors();
   //initial_proximeter_sensor();
   running_state = false;
-  
 }
   //================== loop function ===================
 void loop() {
@@ -58,10 +52,6 @@ void loop() {
       running_state = true;
       roller_state = 1;
       motor_timer = micros();
-      // >>> stuck processing >>>>
-      stuck_logic = false;
-      stuck_timer = millis();
-      // ======================
     }
   }
   if(running_state == true)
@@ -70,30 +60,12 @@ void loop() {
     {
       case 1:
       {
-         if(stuck_logic)
-            {
-              pulse_period = motor_pulse_period1;
-              if(millis()-stuck_timer>=stuck_period)
-              {
-                stuck_logic = false;
-                stuck_timer = millis();
-              }
-            }
-        else
-            {
-              pulse_period = motor_pulse_period;
-              if(millis()-stuck_timer>=stuck_period)
-              {
-                stuck_logic = true;
-                stuck_timer = millis();
-              }
-            }
         if((micros()-motor_timer)>= motor_pulse_period)
-            {
-              pulse_logic =! pulse_logic;
-              run_step_motor(roller_address,pulse_logic);
-              motor_timer = micros();
-            }
+        {
+          pulse_logic =! pulse_logic;
+          run_step_motor(roller_address,pulse_logic);
+          motor_timer = micros();
+        }
         break;
       }
       default:
